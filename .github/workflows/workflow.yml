@@ -1,0 +1,16 @@
+name: "Main workflow"
+on: [pull_request, push]
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - uses: actions/setup-node@v1
+      with:
+        node-version: '12.x'
+    - name: "Install dependencies"
+      run: yarn
+    - name: "Test"
+      run: yarn pretest && yarn test
+    - name: "Lint"
+      run: tslint './**/.ts'
