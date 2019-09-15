@@ -1,7 +1,7 @@
 import * as io from "@actions/io";
 import * as path from "path";
 import * as vscode from "vscode";
-import { directoryIsEmpty, downlaodAndUnzip } from "./utils";
+import { downlaodAndUnzip } from "./utils";
 
 interface ITool {
     available: boolean;
@@ -33,14 +33,16 @@ async function checkNdk(): Promise<ITool> {
     // Filename is platform specific
     const windows: boolean = process.platform === "win32";
     const ndkName: string = windows ? "ndk-build.cmd" : "ndk-build";
+    // NDK version to install if not installed
+    const ndkVer: string = "r20";
     const ndkLink: string = (() => {
         switch (process.platform) {
             case "win32":
-                return "https://dl.google.com/android/repository/android-ndk-r20-windows-x86_64.zip";
+                return `https://dl.google.com/android/repository/android-ndk-${ndkVer}-windows-x86_64.zip`;
             case "darwin":
-                return "https://dl.google.com/android/repository/android-ndk-r20-darwin-x86_64.zip";
+                return `https://dl.google.com/android/repository/android-ndk-${ndkVer}-darwin-x86_64.zip`;
             default:
-                return "https://dl.google.com/android/repository/android-ndk-r20-linux-x86_64.zip";
+                return `https://dl.google.com/android/repository/android-ndk-${ndkVer}-linux-x86_64.zip`;
         }
     })();
 
@@ -122,7 +124,7 @@ async function checkNdk(): Promise<ITool> {
                 });
 
                 // Check if path is valid
-                validPath = installPath !== undefined && await directoryIsEmpty(installPath[0].fsPath);
+                validPath = installPath !== undefined;
                 if (validPath) {
                     // Set installation path
                     // @ts-ignore
@@ -144,7 +146,7 @@ async function checkNdk(): Promise<ITool> {
 
                 // Set to build script path
                 // @ts-ignore
-                ndkPath = path.join(ndkPath, ndkName);
+                ndkPath = path.join(ndkPath, `android-ndk-${ndkVer}`, ndkName);
                 return {
                     available: true,
                     path: ndkPath,
