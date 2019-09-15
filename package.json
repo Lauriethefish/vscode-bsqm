@@ -36,7 +36,12 @@
         "watch": "tsc -watch -p ./",
         "pretest": "yarn run compile",
         "test": "node ./out/test/runTest.js",
-        "lint": "tslint --fix './**/.ts'"
+        "lint": "tslint './**/.ts'"
+    },
+    "dependencies": {
+        "@actions/io": "^1.0.1",
+        "node-fetch": "^2.6.0",
+        "unzipper": "^0.10.5"
     },
     "devDependencies": {
         "@types/glob": "^7.1.1",
@@ -71,10 +76,5 @@
             "tslint --fix",
             "git add"
         ]
-    },
-    "dependencies": {
-        "@actions/io": "^1.0.1",
-        "node-fetch": "^2.6.0",
-        "unzipper": "^0.10.5"
     }
 }

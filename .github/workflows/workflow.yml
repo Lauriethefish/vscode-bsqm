@@ -19,4 +19,4 @@ jobs:
         DISPLAY: ':99.0'
       run: yarn pretest && yarn test
     - name: "Lint"
-      run: tslint './**/.ts'
+      run: yarn lint
