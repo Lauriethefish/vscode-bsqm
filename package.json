@@ -19,14 +19,15 @@
         "mod"
     ],
     "activationEvents": [
-        "onCommand:extension.helloWorld"
+        "onCommand:bsqm.configure"
     ],
     "main": "./out/extension.js",
     "contributes": {
         "commands": [
             {
-                "command": "extension.helloWorld",
-                "title": "Hello World"
+                "category": "BSQM",
+                "command": "bsqm.configure",
+                "title": "Configure..."
             }
         ]
     },

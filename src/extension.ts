@@ -1,25 +1,14 @@
 import * as vscode from "vscode";
 import configure from "./configure";
 
-// this method is called when your extension is activated
-// your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
+    const commands: {[name: string]: vscode.Disposable} = {};
 
-    // Use the console to output diagnostic information (console.log) and errors (console.error)
-    // This line of code will only be executed once when your extension is activated
-    console.log('Congratulations, your extension "bsqm" is now active!');
-
-    configure().catch((error) => console.error(error));
-
-    // The command has been defined in the package.json file
-    // Now provide the implementation of the command with registerCommand
-    // The commandId parameter must match the command field in package.json
-    const disposable = vscode.commands.registerCommand("extension.helloWorld", () => {
-        // The code you place here will be executed every time your command is executed
-
-        // Display a message box to the user
-        vscode.window.showInformationMessage("Hello World!");
+    commands.configure = vscode.commands.registerCommand("bsqm.configure", async () => {
+        await configure();
     });
 
-    context.subscriptions.push(disposable);
+    Object.keys(commands).forEach((command) => {
+        context.subscriptions.push(commands[command]);
+    });
 }
