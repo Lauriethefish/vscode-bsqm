@@ -1,22 +1,22 @@
 name: "Main workflow"
 on: [pull_request, push]
 jobs:
-  check:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v1
-    - uses: actions/setup-node@v1
-      with:
-        node-version: '12.x'
-    - name: "Install dependencies"
-      run: yarn
-    - name: "Emulate display"
-      env:
-        DISPLAY: ':99.0'
-      run: /usr/bin/Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
-    - name: "Test"
-      env:
-        DISPLAY: ':99.0'
-      run: yarn pretest && yarn test
-    - name: "Lint"
-      run: yarn lint
+    check:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v1
+            - uses: actions/setup-node@v1
+              with:
+                  node-version: "12.x"
+            - name: "Install dependencies"
+              run: yarn
+            - name: "Emulate display"
+              env:
+                  DISPLAY: ":99.0"
+              run: /usr/bin/Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+            - name: "Test"
+              env:
+                  DISPLAY: ":99.0"
+              run: yarn pretest && yarn test
+            - name: "Lint"
+              run: yarn lint

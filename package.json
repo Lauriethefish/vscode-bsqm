@@ -106,7 +106,10 @@
         "husky": "^3.0.5",
         "lint-staged": "^9.2.5",
         "mocha": "^6.1.4",
+        "prettier": "^1.18.2",
         "tslint": "^5.12.1",
+        "tslint-config-prettier": "^1.18.0",
+        "tslint-plugin-prettier": "^2.0.1",
         "typescript": "^3.3.1",
         "vscode-test": "^1.2.0"
     },
@@ -124,8 +127,12 @@
         }
     },
     "lint-staged": {
-        "*.ts": [
+        "*.ts?(x)": [
             "tslint --fix",
+            "git add"
+        ],
+        "*!(.(t|j)s?(x)).(?(s)css|less|html|json|md?(x)|y?(a)ml)": [
+            "prettier --write",
             "git add"
         ]
     }

@@ -22,15 +22,22 @@ function selectCrossString(crossString: ICrossString): string {
 }
 
 function printSuccessMessage(toolDisplayName: string, toolPath: string) {
-    vscode.window.showInformationMessage(`Found ${toolDisplayName}: ${toolPath}`);
+    vscode.window.showInformationMessage(
+        `Found ${toolDisplayName}: ${toolPath}`
+    );
 }
 
 function printErrorMessage(toolDisplayName: string) {
-    vscode.window.showErrorMessage(`No ${toolDisplayName}. Some features won't be available.`);
+    vscode.window.showErrorMessage(
+        `No ${toolDisplayName}. Some features won't be available.`
+    );
 }
 
 // Check for tool in PATH
-async function checkTool(toolName: ICrossString, toolDisplayName: string): Promise<string | null> {
+async function checkTool(
+    toolName: ICrossString,
+    toolDisplayName: string
+): Promise<string | null> {
     try {
         // Search for the tool in PATH
         // Throw if not found
@@ -48,7 +55,7 @@ async function checkOrDownloadTool(
     toolName: ICrossString,
     toolDisplayName: string,
     toolUrl: ICrossString,
-    zipSubfolder: string,
+    zipSubfolder: string
 ): Promise<string | null> {
     const osToolName: string = selectCrossString(toolName);
     const osToolUrl: string = selectCrossString(toolUrl);
@@ -61,11 +68,12 @@ async function checkOrDownloadTool(
         return toolPath;
     } catch (error) {
         // Ask if installed
-        const findTool: boolean = await vscode.window.showWarningMessage(
-            `Couldn't find ${toolDisplayName}. Is it installed?`,
-            "Yes",
-            "No",
-        ) === "Yes";
+        const findTool: boolean =
+            (await vscode.window.showWarningMessage(
+                `Couldn't find ${toolDisplayName}. Is it installed?`,
+                "Yes",
+                "No"
+            )) === "Yes";
 
         if (findTool) {
             let validPath: boolean = false;
@@ -73,24 +81,29 @@ async function checkOrDownloadTool(
             let retry: boolean = false;
             do {
                 // Open file dialog to find tool
-                const selectedPath: vscode.Uri[] | undefined = await vscode.window.showOpenDialog({
+                const selectedPath:
+                    | vscode.Uri[]
+                    | undefined = await vscode.window.showOpenDialog({
                     canSelectMany: false,
                     openLabel: `Select ${toolDisplayName}`,
                 });
 
                 // Check if path is valid
-                validPath = selectedPath !== undefined && path.basename(selectedPath[0].fsPath) === osToolName;
+                validPath =
+                    selectedPath !== undefined &&
+                    path.basename(selectedPath[0].fsPath) === osToolName;
                 if (validPath) {
                     // Set tool path
                     // @ts-ignore
                     toolPath = selectedPath[0].fsPath;
                 } else {
                     // Ask for retry
-                    retry = await vscode.window.showErrorMessage(
-                        "Invalid file. Do you wish to try again?",
-                        "Yes",
-                        "No",
-                    ) === "Yes";
+                    retry =
+                        (await vscode.window.showErrorMessage(
+                            "Invalid file. Do you wish to try again?",
+                            "Yes",
+                            "No"
+                        )) === "Yes";
                 }
             } while (!validPath && retry);
 
@@ -103,11 +116,12 @@ async function checkOrDownloadTool(
         }
 
         // Ask for download
-        const downloadTool: boolean = await vscode.window.showWarningMessage(
-            `Do you wish to install ${toolDisplayName}?`,
-            "Yes",
-            "No",
-        ) === "Yes";
+        const downloadTool: boolean =
+            (await vscode.window.showWarningMessage(
+                `Do you wish to install ${toolDisplayName}?`,
+                "Yes",
+                "No"
+            )) === "Yes";
 
         if (downloadTool) {
             let validPath: boolean = false;
@@ -115,7 +129,9 @@ async function checkOrDownloadTool(
             let retry: boolean = false;
             do {
                 // Open folder dialog to select install location
-                const installPath: vscode.Uri[] | undefined = await vscode.window.showOpenDialog({
+                const installPath:
+                    | vscode.Uri[]
+                    | undefined = await vscode.window.showOpenDialog({
                     canSelectFiles: false,
                     canSelectFolders: true,
                     canSelectMany: false,
@@ -130,11 +146,12 @@ async function checkOrDownloadTool(
                     toolPath = installPath[0].fsPath;
                 } else {
                     // Ask for retry
-                    retry = await vscode.window.showErrorMessage(
-                        "Invalid folder. Do you wish to try again?",
-                        "Yes",
-                        "No",
-                    ) === "Yes";
+                    retry =
+                        (await vscode.window.showErrorMessage(
+                            "Invalid folder. Do you wish to try again?",
+                            "Yes",
+                            "No"
+                        )) === "Yes";
                 }
             } while (!validPath && retry);
 
@@ -176,12 +193,20 @@ async function checkAdb(): Promise<string | null> {
         linux: "adb",
     };
     const adbUrl: ICrossString = {
-        windows: "https://dl.google.com/android/repository/platform-tools-latest-windows.zip",
-        macos: "https://dl.google.com/android/repository/platform-tools-latest-darwin.zip",
-        linux: "https://dl.google.com/android/repository/platform-tools-latest-linux.zip",
+        windows:
+            "https://dl.google.com/android/repository/platform-tools-latest-windows.zip",
+        macos:
+            "https://dl.google.com/android/repository/platform-tools-latest-darwin.zip",
+        linux:
+            "https://dl.google.com/android/repository/platform-tools-latest-linux.zip",
     };
 
-    const adbPath: string | null = await checkOrDownloadTool(adbName, "adb binary", adbUrl, "platform-tools");
+    const adbPath: string | null = await checkOrDownloadTool(
+        adbName,
+        "adb binary",
+        adbUrl,
+        "platform-tools"
+    );
     return adbPath;
 }
 
@@ -199,7 +224,12 @@ async function checkNdk(): Promise<string | null> {
         linux: `https://dl.google.com/android/repository/android-ndk-${ndkVer}-linux-x86_64.zip`,
     };
 
-    const ndkPath: string | null = await checkOrDownloadTool(ndkName, "Android NDK build script", ndkUrl, `android-ndk-${ndkVer}`);
+    const ndkPath: string | null = await checkOrDownloadTool(
+        ndkName,
+        "Android NDK build script",
+        ndkUrl,
+        `android-ndk-${ndkVer}`
+    );
     return ndkPath;
 }
 
@@ -208,11 +238,23 @@ export default async function configure() {
         const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration();
 
         const git: string | null = await checkGit();
-        await config.update("bsqm.tools.git", git, vscode.ConfigurationTarget.Global);
+        await config.update(
+            "bsqm.tools.git",
+            git,
+            vscode.ConfigurationTarget.Global
+        );
         const adb: string | null = await checkAdb();
-        await config.update("bsqm.tools.adb", adb, vscode.ConfigurationTarget.Global);
+        await config.update(
+            "bsqm.tools.adb",
+            adb,
+            vscode.ConfigurationTarget.Global
+        );
         const ndk: string | null = await checkNdk();
-        await config.update("bsqm.tools.ndk", ndk, vscode.ConfigurationTarget.Global);
+        await config.update(
+            "bsqm.tools.ndk",
+            ndk,
+            vscode.ConfigurationTarget.Global
+        );
     } catch (error) {
         vscode.window.showErrorMessage(error);
     }

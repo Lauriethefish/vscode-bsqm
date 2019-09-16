@@ -11,11 +11,11 @@ export async function downlaodAndUnzip(url: string, path: string) {
             cancellable: false,
         },
         async (progress) => {
-            progress.report({message: "Downloading..."});
+            progress.report({ message: "Downloading..." });
             const res: Response = await fetch(url);
-            progress.report({message: "Extracting..."});
-            await res.body.pipe(unzipper.Extract({path})).promise();
-        },
+            progress.report({ message: "Extracting..." });
+            await res.body.pipe(unzipper.Extract({ path })).promise();
+        }
     );
 }
 
