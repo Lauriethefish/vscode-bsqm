@@ -204,12 +204,16 @@ async function checkNdk(): Promise<string | null> {
 }
 
 export default async function configure() {
-    const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration();
+    try {
+        const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration();
 
-    const git: string | null = await checkGit();
-    await config.update("bsqm.tools.git", git, vscode.ConfigurationTarget.Global);
-    const adb: string | null = await checkAdb();
-    await config.update("bsqm.tools.adb", adb, vscode.ConfigurationTarget.Global);
-    const ndk: string | null = await checkNdk();
-    await config.update("bsqm.tools.ndk", ndk, vscode.ConfigurationTarget.Global);
+        const git: string | null = await checkGit();
+        await config.update("bsqm.tools.git", git, vscode.ConfigurationTarget.Global);
+        const adb: string | null = await checkAdb();
+        await config.update("bsqm.tools.adb", adb, vscode.ConfigurationTarget.Global);
+        const ndk: string | null = await checkNdk();
+        await config.update("bsqm.tools.ndk", ndk, vscode.ConfigurationTarget.Global);
+    } catch (error) {
+        vscode.window.showErrorMessage(error);
+    }
 }
