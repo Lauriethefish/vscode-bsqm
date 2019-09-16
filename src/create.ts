@@ -112,7 +112,7 @@ export default async function create() {
                     prompt: "Mod name",
                     placeHolder: projectInfo.name,
                     validateInput: (input) =>
-                        /[^\n\t]+/g.test(input)
+                        /[^\n\r\t]+/g.test(input)
                             ? null
                             : "Should fit on a single line.",
                 })) || projectInfo.name;
@@ -237,11 +237,9 @@ export default async function create() {
             );
 
             // Set workspace to new project
-            vscode.workspace.updateWorkspaceFolders(
-                (vscode.workspace.workspaceFolders || []).length,
-                0,
-                { uri: vscode.Uri.file(projectPath) }
-            );
+            vscode.workspace.updateWorkspaceFolders(0, 0, {
+                uri: vscode.Uri.file(projectPath),
+            });
         }
     } catch (error) {
         vscode.window.showErrorMessage(error);
