@@ -21,6 +21,7 @@
     "activationEvents": [
         "workspaceContains:**/beatonmod.json",
         "workspaceContains:**/beatsaber-hook",
+        "onCommand:bsqm.activate",
         "onCommand:bsqm.configure",
         "onCommand:bsqm.create"
     ],
@@ -35,6 +36,11 @@
             ]
         },
         "commands": [
+            {
+                "category": "BSQM",
+                "command": "bsqm.activate",
+                "title": "Activate."
+            },
             {
                 "category": "BSQM",
                 "command": "bsqm.configure",
