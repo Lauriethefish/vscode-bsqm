@@ -19,6 +19,8 @@
         "mod"
     ],
     "activationEvents": [
+        "workspaceContains:**/beatonmod.json",
+        "workspaceContains:**/beatsaber-hook",
         "onCommand:bsqm.configure"
     ],
     "main": "./out/extension.js",
