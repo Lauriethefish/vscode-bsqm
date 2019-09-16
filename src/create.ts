@@ -15,9 +15,17 @@ interface IModInfo {
     out: string;
 }
 
+interface IGitSubmodule {
+    path: string;
+    url: string;
+    branch?: string;
+    commit?: string;
+}
+
 interface IModTemplate {
     toFill: string[];
     toDelete: string[];
+    submodules: IGitSubmodule[];
 }
 
 export default async function create() {
@@ -173,19 +181,67 @@ export default async function create() {
                 }
             });
 
+            // Initialise repository and submodules
+            const git: string =
+                vscode.workspace
+                    .getConfiguration("bsqm.tools")
+                    .get<string>("git") || "git";
+            await vscode.window.withProgress(
+                {
+                    title: "Setting up project",
+                    location: vscode.ProgressLocation.Notification,
+                    cancellable: false,
+                },
+                async (progress) => {
+                    progress.report({
+                        message: "Initialising git repository...",
+                    });
+                    cp.spawnSync(git, ["init"], { cwd: projectPath });
+
+                    progress.report({
+                        message: "Initialising git submodules...",
+                    });
+                    // Create submodules path
+                    const submodulesPath: string =
+                        projectPath !== undefined
+                            ? path.join(projectPath, "extern")
+                            : "extern";
+                    await fs.mkdirp(submodulesPath);
+                    // Loop over submodules
+                    template.submodules.forEach((submodule) => {
+                        // Add submodule
+                        let submoduleArgs: string[] = ["submodule", "add"];
+                        if (submodule.branch !== undefined) {
+                            submoduleArgs = submoduleArgs.concat([
+                                "-b",
+                                submodule.branch,
+                            ]);
+                        }
+                        submoduleArgs = submoduleArgs.concat([
+                            submodule.url,
+                            `extern/${submodule.path}`,
+                        ]);
+                        cp.spawnSync(git, submoduleArgs, { cwd: projectPath });
+
+                        // Checkout submodule
+                        if (
+                            submodule.commit !== undefined &&
+                            projectPath !== undefined
+                        ) {
+                            cp.spawnSync(git, ["checkout", submodule.commit], {
+                                cwd: path.join(submodulesPath, submodule.path),
+                            });
+                        }
+                    });
+                }
+            );
+
             // Set workspace to new project
             vscode.workspace.updateWorkspaceFolders(
                 (vscode.workspace.workspaceFolders || []).length,
                 0,
                 { uri: vscode.Uri.file(projectPath) }
             );
-
-            // Initialise repository and submodules
-            const git: string =
-                vscode.workspace
-                    .getConfiguration("bsqm.tools")
-                    .get<string>("git") || "git";
-            cp.spawnSync(git, ["init"], { cwd: projectPath });
         }
     } catch (error) {
         vscode.window.showErrorMessage(error);
