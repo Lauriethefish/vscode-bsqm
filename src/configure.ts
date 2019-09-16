@@ -260,14 +260,18 @@ export default async function configure() {
         const cppConfig = vscode.workspace.getConfiguration("C_Cpp");
         if (ndk !== null) {
             let ndkDir = path.dirname(ndk);
+            if (!ndkDir.endsWith(path.sep)) {
+                ndkDir += path.sep;
+            }
             ndkDir += "**";
 
-            let includePath: string =
-                cppConfig.get("default.includePath") || "";
-            if (includePath.length > 0) {
-                includePath += ";";
+            const includePath: string[] = cppConfig.get(
+                "default.includePath",
+                []
+            );
+            if (!includePath.includes(ndkDir)) {
+                includePath.push(ndkDir);
             }
-            includePath += ndkDir;
 
             await cppConfig.update(
                 "default.includePath",
