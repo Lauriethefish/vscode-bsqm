@@ -196,7 +196,14 @@ export default async function create() {
                     progress.report({
                         message: "Initialising git repository...",
                     });
-                    cp.spawnSync(git, ["init"], { cwd: projectPath });
+                    const initEc = cp.spawnSync(git, ["init"], {
+                        cwd: projectPath,
+                    }).status;
+                    if (initEc !== 0) {
+                        throw new Error(
+                            "Git repository initialisation failed."
+                        );
+                    }
 
                     progress.report({
                         message: "Initialising git submodules...",
@@ -221,16 +228,35 @@ export default async function create() {
                             submodule.url,
                             `extern/${submodule.path}`,
                         ]);
-                        cp.spawnSync(git, submoduleArgs, { cwd: projectPath });
+                        const subEc = cp.spawnSync(git, submoduleArgs, {
+                            cwd: projectPath,
+                        }).status;
+                        if (subEc !== 0) {
+                            throw new Error(
+                                "Git subbodule initialisation failed."
+                            );
+                        }
 
                         // Checkout submodule
                         if (
                             submodule.commit !== undefined &&
                             projectPath !== undefined
                         ) {
-                            cp.spawnSync(git, ["checkout", submodule.commit], {
-                                cwd: path.join(submodulesPath, submodule.path),
-                            });
+                            const subcheckEc = cp.spawnSync(
+                                git,
+                                ["checkout", submodule.commit],
+                                {
+                                    cwd: path.join(
+                                        submodulesPath,
+                                        submodule.path
+                                    ),
+                                }
+                            ).status;
+                            if (subcheckEc !== 0) {
+                                throw new Error(
+                                    "Git subbodule checkout failed."
+                                );
+                            }
                         }
                     });
                 }
