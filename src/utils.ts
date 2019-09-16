@@ -1,4 +1,4 @@
-import { promises as fs } from "fs";
+import * as fs from "fs-extra";
 import fetch, { Response } from "node-fetch";
 import * as unzipper from "unzipper";
 import * as vscode from "vscode";
@@ -6,14 +6,15 @@ import * as vscode from "vscode";
 export async function downlaodAndUnzip(url: string, path: string) {
     await vscode.window.withProgress(
         {
-            title: `Downloading ${url}...`,
+            title: `Downloading ${url}`,
             location: vscode.ProgressLocation.Notification,
             cancellable: false,
         },
         async (progress) => {
-                const res: Response = await fetch(url);
-                progress.report({message: "Extracting..."});
-                res.body.pipe(unzipper.Extract({path}));
+            progress.report({message: "Downloading..."});
+            const res: Response = await fetch(url);
+            progress.report({message: "Extracting..."});
+            await res.body.pipe(unzipper.Extract({path})).promise();
         },
     );
 }

@@ -1,6 +1,6 @@
-import * as io from "@actions/io";
 import * as path from "path";
 import * as vscode from "vscode";
+import * as which from "which";
 import { downlaodAndUnzip } from "./utils";
 
 interface ICrossString {
@@ -34,7 +34,7 @@ async function checkTool(toolName: ICrossString, toolDisplayName: string): Promi
     try {
         // Search for the tool in PATH
         // Throw if not found
-        const toolPath: string = await io.which(selectCrossString(toolName), true);
+        const toolPath: string = which.sync(selectCrossString(toolName));
         printSuccessMessage(toolDisplayName, toolPath);
         return toolPath;
     } catch (error) {
@@ -56,7 +56,7 @@ async function checkOrDownloadTool(
     try {
         // Search for the tool PATH
         // Throw if not found
-        const toolPath: string = await io.which(osToolName, true);
+        const toolPath: string = which.sync(osToolName);
         printSuccessMessage(toolDisplayName, toolPath);
         return toolPath;
     } catch (error) {
