@@ -255,6 +255,26 @@ export default async function configure() {
             ndk,
             vscode.ConfigurationTarget.Global
         );
+
+        // Update C/C++ config
+        const cppConfig = vscode.workspace.getConfiguration("C_Cpp");
+        if (ndk !== null) {
+            let ndkDir = path.dirname(ndk);
+            ndkDir += "**";
+
+            let includePath: string =
+                cppConfig.get("default.includePath") || "";
+            if (includePath.length > 0) {
+                includePath += ";";
+            }
+            includePath += ndkDir;
+
+            await cppConfig.update(
+                "default.includePath",
+                includePath,
+                vscode.ConfigurationTarget.Global
+            );
+        }
     } catch (error) {
         vscode.window.showErrorMessage(error.message);
     }
