@@ -21,32 +21,56 @@
     "activationEvents": [
         "workspaceContains:**/beatonmod.json",
         "workspaceContains:**/beatsaber-hook",
-        "onCommand:bsqm.configure"
+        "onCommand:bsqm.configure",
+        "onCommand:bsqm.create"
     ],
     "main": "./out/extension.js",
     "contributes": {
+        "menus": {
+            "commandPalette": [
+                {
+                    "command": "bsqm.create",
+                    "when": "config.bsqm.tools.git != "
+                }
+            ]
+        },
         "commands": [
             {
                 "category": "BSQM",
                 "command": "bsqm.configure",
                 "title": "Configure..."
+            },
+            {
+                "category": "BSQM",
+                "command": "bsqm.create",
+                "title": "Create new project...",
+                "enablement": "config.bsqm.tools.git != "
             }
         ],
         "configuration": {
             "title": "BSQM",
             "properties": {
                 "bsqm.tools.git": {
-                    "type": ["string", "null"],
+                    "type": [
+                        "string",
+                        "null"
+                    ],
                     "format": "uri",
                     "description": "Path to Git binary"
                 },
                 "bsqm.tools.adb": {
-                    "type": ["string", "null"],
+                    "type": [
+                        "string",
+                        "null"
+                    ],
                     "format": "uri",
                     "description": "Path to adb binary"
                 },
                 "bsqm.tools.ndk": {
-                    "type": ["string", "null"],
+                    "type": [
+                        "string",
+                        "null"
+                    ],
                     "format": "uri",
                     "description": "Path to Android NDK build script"
                 }
@@ -64,6 +88,7 @@
     "dependencies": {
         "@actions/io": "^1.0.1",
         "node-fetch": "^2.6.0",
+        "nunjucks": "^3.2.0",
         "unzipper": "^0.10.5"
     },
     "devDependencies": {
