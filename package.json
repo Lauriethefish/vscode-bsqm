@@ -29,7 +29,27 @@
                 "command": "bsqm.configure",
                 "title": "Configure..."
             }
-        ]
+        ],
+        "configuration": {
+            "title": "BSQM",
+            "properties": {
+                "bsqm.tools.git": {
+                    "type": ["string", "null"],
+                    "format": "uri",
+                    "description": "Path to Git binary"
+                },
+                "bsqm.tools.adb": {
+                    "type": ["string", "null"],
+                    "format": "uri",
+                    "description": "Path to adb binary"
+                },
+                "bsqm.tools.ndk": {
+                    "type": ["string", "null"],
+                    "format": "uri",
+                    "description": "Path to Android NDK build script"
+                }
+            }
+        }
     },
     "scripts": {
         "vscode:prepublish": "yarn run compile",
