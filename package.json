@@ -32,6 +32,18 @@
                 {
                     "command": "bsqm.create",
                     "when": "config.bsqm.tools.git != "
+                },
+                {
+                    "command": "bsqm.build",
+                    "when": "config.bsqm.tools.ndk != "
+                },
+                {
+                    "command": "bsqm.push",
+                    "when": "config.bsqm.tools.adb != "
+                },
+                {
+                    "command": "bsqm.buildAndPush",
+                    "when": "config.bsqm.tools.ndk != "
                 }
             ]
         },
@@ -51,6 +63,23 @@
                 "command": "bsqm.create",
                 "title": "Create new project...",
                 "enablement": "config.bsqm.tools.git != "
+            },
+            {
+                "category": "BSQM",
+                "command": "bsqm.build",
+                "title": "Build project.",
+                "enablement": "config.bsqm.tools.ndk != "
+            },
+            {
+                "category": "BSQM",
+                "command": "bsqm.push",
+                "title": "Push project.",
+                "enablement": "config.bsqm.tools.adb != "
+            },
+            {
+                "category": "BSQM",
+                "command": "bsqm.buildAndPush",
+                "title": "Build & push project."
             }
         ],
         "configuration": {

@@ -6,8 +6,9 @@ export function activate(context: vscode.ExtensionContext) {
     const commands: { [name: string]: vscode.Disposable } = {};
 
     commands.activate = vscode.commands.registerCommand("bsqm.activate", () => {
-        // Do nothing, just activate extension
+        vscode.window.showInformationMessage("BSQM extension activated.");
     });
+
     commands.configure = vscode.commands.registerCommand(
         "bsqm.configure",
         configure
@@ -17,6 +18,4 @@ export function activate(context: vscode.ExtensionContext) {
     Object.keys(commands).forEach((command) => {
         context.subscriptions.push(commands[command]);
     });
-
-    vscode.window.showInformationMessage("BSQM extension activated.");
 }
