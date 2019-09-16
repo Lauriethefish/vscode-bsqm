@@ -3,75 +3,87 @@ import * as path from "path";
 import * as vscode from "vscode";
 import { downlaodAndUnzip } from "./utils";
 
-// Check for Git binary
-async function checkGit(): Promise<string | null> {
-    try {
-        // Search for the binary in PATH
-        // Throw if not found
-        const gitPath: string = await io.which("git", true);
+interface ICrossString {
+    windows: string;
+    macos: string;
+    linux: string;
+}
 
-        vscode.window.showInformationMessage(`Found Git binary: ${gitPath}`);
-        return gitPath;
+// Select string based on OS
+function selectCrossString(crossString: ICrossString): string {
+    switch (process.platform) {
+        case "win32":
+            return crossString.windows;
+        case "darwin":
+            return crossString.macos;
+        default:
+            return crossString.linux;
+    }
+}
+
+function printSuccessMessage(toolDisplayName: string, toolPath: string) {
+    vscode.window.showInformationMessage(`Found ${toolDisplayName}: ${toolPath}`);
+}
+
+function printErrorMessage(toolDisplayName: string) {
+    vscode.window.showErrorMessage(`No ${toolDisplayName}. Some features won't be available.`);
+}
+
+// Check for tool in PATH
+async function checkTool(toolName: ICrossString, toolDisplayName: string): Promise<string | null> {
+    try {
+        // Search for the tool in PATH
+        // Throw if not found
+        const toolPath: string = await io.which(selectCrossString(toolName), true);
+        printSuccessMessage(toolDisplayName, toolPath);
+        return toolPath;
     } catch (error) {
-        vscode.window.showErrorMessage("Couldn't find Git binary. Some features won't be available.");
+        printErrorMessage(toolDisplayName);
         return null;
     }
 }
 
-// TODO: Merge duplicate code
-
-// Check for adb binary
-async function checkAdb(): Promise<string | null> {
-    // Filename is platform specific
-    const windows: boolean = process.platform === "win32";
-    const adbName: string = windows ? "adb.exe" : "adb";
-    const adbLink: string = (() => {
-        switch (process.platform) {
-            case "win32":
-                return `https://dl.google.com/android/repository/platform-tools-latest-windows.zip`;
-            case "darwin":
-                return `https://dl.google.com/android/repository/platform-tools-latest-darwin.zip`;
-            default:
-                return `https://dl.google.com/android/repository/platform-tools-latest-linux.zip`;
-        }
-    })();
+// Check for tool in PATH and ask for it or download it if not found
+async function checkOrDownloadTool(
+    toolName: ICrossString,
+    toolDisplayName: string,
+    toolUrl: ICrossString,
+    zipSubfolder: string,
+): Promise<string | null> {
+    const osToolName: string = selectCrossString(toolName);
+    const osToolUrl: string = selectCrossString(toolUrl);
 
     try {
-        // Search for the build script in PATH
+        // Search for the tool PATH
         // Throw if not found
-        const adbPath: string = await io.which(adbName, true);
-
-        vscode.window.showInformationMessage(`Found adb binary: ${adbPath}`);
-        return adbPath;
+        const toolPath: string = await io.which(osToolName, true);
+        printSuccessMessage(toolDisplayName, toolPath);
+        return toolPath;
     } catch (error) {
         // Ask if installed
-        const findAdb: boolean = await vscode.window.showWarningMessage(
-            "Couldn't find adb binary. Is it installed?",
+        const findTool: boolean = await vscode.window.showWarningMessage(
+            `Couldn't find ${toolDisplayName}. Is it installed?`,
             "Yes",
             "No",
         ) === "Yes";
 
-        if (findAdb) {
+        if (findTool) {
             let validPath: boolean = false;
-            let adbPath: string | undefined;
+            let toolPath: string | undefined;
             let retry: boolean = false;
             do {
-                // Open file dialog to find build script
-                const filters: {[name: string]: string[]} = windows
-                    ? {adb: ["exe"]}
-                    : {};
-                const binPath: vscode.Uri[] | undefined = await vscode.window.showOpenDialog({
+                // Open file dialog to find tool
+                const selectedPath: vscode.Uri[] | undefined = await vscode.window.showOpenDialog({
                     canSelectMany: false,
-                    openLabel: "Select adb binary",
-                    filters,
+                    openLabel: `Select ${toolDisplayName}`,
                 });
 
                 // Check if path is valid
-                validPath = binPath !== undefined && path.basename(binPath[0].fsPath) === adbName;
+                validPath = selectedPath !== undefined && path.basename(selectedPath[0].fsPath) === osToolName;
                 if (validPath) {
-                    // Set build script path
+                    // Set tool path
                     // @ts-ignore
-                    adbPath = binPath[0].fsPath;
+                    toolPath = selectedPath[0].fsPath;
                 } else {
                     // Ask for retry
                     retry = await vscode.window.showErrorMessage(
@@ -83,22 +95,23 @@ async function checkAdb(): Promise<string | null> {
             } while (!validPath && retry);
 
             if (validPath) {
-                vscode.window.showInformationMessage(`Found adb binary: ${adbPath}`);
                 // @ts-ignore
-                return adbPath;
+                printSuccessMessage(toolDisplayName, toolPath);
+                // @ts-ignore
+                return toolPath;
             }
         }
 
         // Ask for download
-        const installAdb: boolean = await vscode.window.showWarningMessage(
-            "Do you wish to install adb?",
+        const downloadTool: boolean = await vscode.window.showWarningMessage(
+            `Do you wish to install ${toolDisplayName}?`,
             "Yes",
             "No",
         ) === "Yes";
 
-        if (installAdb) {
+        if (downloadTool) {
             let validPath: boolean = false;
-            let adbPath: string | undefined;
+            let toolPath: string | undefined;
             let retry: boolean = false;
             do {
                 // Open folder dialog to select install location
@@ -106,7 +119,7 @@ async function checkAdb(): Promise<string | null> {
                     canSelectFiles: false,
                     canSelectFolders: true,
                     canSelectMany: false,
-                    openLabel: "Select adb installation folder",
+                    openLabel: `Select ${toolDisplayName} installation folder`,
                 });
 
                 // Check if path is valid
@@ -114,7 +127,7 @@ async function checkAdb(): Promise<string | null> {
                 if (validPath) {
                     // Set installation path
                     // @ts-ignore
-                    adbPath = installPath[0].fsPath;
+                    toolPath = installPath[0].fsPath;
                 } else {
                     // Ask for retry
                     retry = await vscode.window.showErrorMessage(
@@ -126,146 +139,68 @@ async function checkAdb(): Promise<string | null> {
             } while (!validPath && retry);
 
             if (validPath) {
-                // Download and unzip NDK
+                // Download and unzip tool
                 // @ts-ignore
-                await downlaodAndUnzip(adbLink, adbPath);
+                await downlaodAndUnzip(osToolUrl, toolPath);
 
-                // Set to build script path
+                // Set to tool path
                 // @ts-ignore
-                adbPath = path.join(adbPath, "platform-tools", adbName);
-                vscode.window.showInformationMessage(`Found adb binary: ${adbPath}`);
-                return adbPath;
+                toolPath = path.join(toolPath, zipSubfolder, osToolName);
+                printSuccessMessage(toolDisplayName, toolPath);
+                return toolPath;
             }
         }
 
-        vscode.window.showErrorMessage("No adb binary. Some features won't be available.");
+        printErrorMessage(toolDisplayName);
         return null;
     }
+}
+
+// Check for Git binary
+async function checkGit(): Promise<string | null> {
+    const gitName: ICrossString = {
+        windows: "git.exe",
+        macos: "git",
+        linux: "git",
+    };
+
+    const gitPath: string | null = await checkTool(gitName, "Git binary");
+    return gitPath;
+}
+
+// Check for adb binary
+async function checkAdb(): Promise<string | null> {
+    const adbName: ICrossString = {
+        windows: "adb.exe",
+        macos: "adb",
+        linux: "adb",
+    };
+    const adbUrl: ICrossString = {
+        windows: "https://dl.google.com/android/repository/platform-tools-latest-windows.zip",
+        macos: "https://dl.google.com/android/repository/platform-tools-latest-darwin.zip",
+        linux: "https://dl.google.com/android/repository/platform-tools-latest-linux.zip",
+    };
+
+    const adbPath: string | null = await checkOrDownloadTool(adbName, "adb binary", adbUrl, "platform-tools");
+    return adbPath;
 }
 
 // Check for Android NDK build script
 async function checkNdk(): Promise<string | null> {
-    // Filename is platform specific
-    const windows: boolean = process.platform === "win32";
-    const ndkName: string = windows ? "ndk-build.cmd" : "ndk-build";
-    // NDK version to install if not installed
+    const ndkName: ICrossString = {
+        windows: "ndk-build.cmd",
+        macos: "ndk-build",
+        linux: "ndk-build",
+    };
     const ndkVer: string = "r20";
-    const ndkLink: string = (() => {
-        switch (process.platform) {
-            case "win32":
-                return `https://dl.google.com/android/repository/android-ndk-${ndkVer}-windows-x86_64.zip`;
-            case "darwin":
-                return `https://dl.google.com/android/repository/android-ndk-${ndkVer}-darwin-x86_64.zip`;
-            default:
-                return `https://dl.google.com/android/repository/android-ndk-${ndkVer}-linux-x86_64.zip`;
-        }
-    })();
+    const ndkUrl: ICrossString = {
+        windows: `https://dl.google.com/android/repository/android-ndk-${ndkVer}-windows-x86_64.zip`,
+        macos: `https://dl.google.com/android/repository/android-ndk-${ndkVer}-darwin-x86_64.zip`,
+        linux: `https://dl.google.com/android/repository/android-ndk-${ndkVer}-linux-x86_64.zip`,
+    };
 
-    try {
-        // Search for the build script in PATH
-        // Throw if not found
-        const ndkPath: string = await io.which(ndkName, true);
-
-        vscode.window.showInformationMessage(`Found Android NDK build script: ${ndkPath}`);
-        return ndkPath;
-    } catch (error) {
-        // Ask if installed
-        const findNdk: boolean = await vscode.window.showWarningMessage(
-            "Couldn't find Android NDK build script. Is it installed?",
-            "Yes",
-            "No",
-        ) === "Yes";
-
-        if (findNdk) {
-            let validPath: boolean = false;
-            let ndkPath: string | undefined;
-            let retry: boolean = false;
-            do {
-                // Open file dialog to find build script
-                const filters: {[name: string]: string[]} = windows
-                    ? {"Android NDK build script": ["cmd"]}
-                    : {};
-                const scriptPath: vscode.Uri[] | undefined = await vscode.window.showOpenDialog({
-                    canSelectMany: false,
-                    openLabel: "Select build script",
-                    filters,
-                });
-
-                // Check if path is valid
-                validPath = scriptPath !== undefined && path.basename(scriptPath[0].fsPath) === ndkName;
-                if (validPath) {
-                    // Set build script path
-                    // @ts-ignore
-                    ndkPath = scriptPath[0].fsPath;
-                } else {
-                    // Ask for retry
-                    retry = await vscode.window.showErrorMessage(
-                        "Invalid file. Do you wish to try again?",
-                        "Yes",
-                        "No",
-                    ) === "Yes";
-                }
-            } while (!validPath && retry);
-
-            if (validPath) {
-                vscode.window.showInformationMessage(`Found Android NDK build script: ${ndkPath}`);
-                // @ts-ignore
-                return ndkPath;
-            }
-        }
-
-        // Ask for download
-        const installNdk: boolean = await vscode.window.showWarningMessage(
-            "Do you wish to install the Android NDK?",
-            "Yes",
-            "No",
-        ) === "Yes";
-
-        if (installNdk) {
-            let validPath: boolean = false;
-            let ndkPath: string | undefined;
-            let retry: boolean = false;
-            do {
-                // Open folder dialog to select install location
-                const installPath: vscode.Uri[] | undefined = await vscode.window.showOpenDialog({
-                    canSelectFiles: false,
-                    canSelectFolders: true,
-                    canSelectMany: false,
-                    openLabel: "Select NDK installation folder",
-                });
-
-                // Check if path is valid
-                validPath = installPath !== undefined;
-                if (validPath) {
-                    // Set installation path
-                    // @ts-ignore
-                    ndkPath = installPath[0].fsPath;
-                } else {
-                    // Ask for retry
-                    retry = await vscode.window.showErrorMessage(
-                        "Invalid folder. Do you wish to try again?",
-                        "Yes",
-                        "No",
-                    ) === "Yes";
-                }
-            } while (!validPath && retry);
-
-            if (validPath) {
-                // Download and unzip NDK
-                // @ts-ignore
-                await downlaodAndUnzip(ndkLink, ndkPath);
-
-                // Set to build script path
-                // @ts-ignore
-                ndkPath = path.join(ndkPath, `android-ndk-${ndkVer}`, ndkName);
-                vscode.window.showInformationMessage(`Found Android NDK build script: ${ndkPath}`);
-                return ndkPath;
-            }
-        }
-
-        vscode.window.showErrorMessage("No Android NDK build script. Some features won't be available.");
-        return null;
-    }
+    const ndkPath: string | null = await checkOrDownloadTool(ndkName, "Android NDK build script", ndkUrl, `android-ndk-${ndkVer}`);
+    return ndkPath;
 }
 
 export default async function configure() {
