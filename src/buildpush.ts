@@ -6,10 +6,9 @@ export async function build() {
         if (vscode.workspace.workspaceFolders === undefined) {
             throw new Error("Missing project directory.");
         }
-        const ndk: string =
-            vscode.workspace
-                .getConfiguration("bsqm.tools")
-                .get<string>("ndk") || "ndk-build";
+        const ndk: string = vscode.workspace
+            .getConfiguration("bsqm.tools")
+            .get("ndk", "ndk-build");
         const workdir: string = vscode.workspace.workspaceFolders[0].uri.fsPath;
         await vscode.window.withProgress(
             {

@@ -182,10 +182,9 @@ export default async function create() {
             });
 
             // Initialise repository and submodules
-            const git: string =
-                vscode.workspace
-                    .getConfiguration("bsqm.tools")
-                    .get<string>("git") || "git";
+            const git: string = vscode.workspace
+                .getConfiguration("bsqm.tools")
+                .get("git", "git");
             await vscode.window.withProgress(
                 {
                     title: "Setting up project",
