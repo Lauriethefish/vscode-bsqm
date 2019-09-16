@@ -193,13 +193,20 @@ export default async function create() {
                     cancellable: false,
                 },
                 async (progress) => {
+                    const initChannel = vscode.window.createOutputChannel(
+                        "BSQM Project Initialisation"
+                    );
+                    initChannel.show();
+
                     progress.report({
                         message: "Initialising git repository...",
                     });
-                    const initEc = cp.spawnSync(git, ["init"], {
+                    const initResult = cp.spawnSync(git, ["init"], {
                         cwd: projectPath,
-                    }).status;
-                    if (initEc !== 0) {
+                    });
+                    initChannel.appendLine(initResult.stdout.toString());
+                    initChannel.appendLine(initResult.stderr.toString());
+                    if (initResult.status !== 0) {
                         throw new Error(
                             "Git repository initialisation failed."
                         );
@@ -228,10 +235,12 @@ export default async function create() {
                             submodule.url,
                             `extern/${submodule.path}`,
                         ]);
-                        const subEc = cp.spawnSync(git, submoduleArgs, {
+                        const subResult = cp.spawnSync(git, submoduleArgs, {
                             cwd: projectPath,
-                        }).status;
-                        if (subEc !== 0) {
+                        });
+                        initChannel.appendLine(subResult.stdout.toString());
+                        initChannel.appendLine(subResult.stderr.toString());
+                        if (subResult.status !== 0) {
                             throw new Error(
                                 "Git subbodule initialisation failed."
                             );
@@ -242,7 +251,7 @@ export default async function create() {
                             submodule.commit !== undefined &&
                             projectPath !== undefined
                         ) {
-                            const subcheckEc = cp.spawnSync(
+                            const subCheckResult = cp.spawnSync(
                                 git,
                                 ["checkout", submodule.commit],
                                 {
@@ -251,8 +260,14 @@ export default async function create() {
                                         submodule.path
                                     ),
                                 }
-                            ).status;
-                            if (subcheckEc !== 0) {
+                            );
+                            initChannel.appendLine(
+                                subCheckResult.stdout.toString()
+                            );
+                            initChannel.appendLine(
+                                subCheckResult.stderr.toString()
+                            );
+                            if (subCheckResult.status !== 0) {
                                 throw new Error(
                                     "Git subbodule checkout failed."
                                 );
@@ -268,6 +283,6 @@ export default async function create() {
             });
         }
     } catch (error) {
-        vscode.window.showErrorMessage(error);
+        vscode.window.showErrorMessage(error.message);
     }
 }

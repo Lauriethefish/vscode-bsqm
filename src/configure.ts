@@ -256,6 +256,6 @@ export default async function configure() {
             vscode.ConfigurationTarget.Global
         );
     } catch (error) {
-        vscode.window.showErrorMessage(error);
+        vscode.window.showErrorMessage(error.message);
     }
 }

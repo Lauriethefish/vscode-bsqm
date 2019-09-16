@@ -19,7 +19,7 @@ export async function build() {
             },
             async (progress) => {
                 progress.report({ message: "Building..." });
-                const ec = cp.spawnSync(
+                const buildResult = cp.spawnSync(
                     ndk,
                     [
                         "NDK_PROJECT_PATH=.",
@@ -27,13 +27,19 @@ export async function build() {
                         "NDK_APPLICATION_MK=./Application.mk",
                     ],
                     { cwd: workdir }
-                ).status;
-                if (ec !== 0) {
+                );
+                const buildChannel = vscode.window.createOutputChannel(
+                    "BSQM Build"
+                );
+                buildChannel.show();
+                buildChannel.appendLine(buildResult.stdout.toString());
+                buildChannel.appendLine(buildResult.stderr.toString());
+                if (buildResult.status !== 0) {
                     throw new Error("Build failed.");
                 }
             }
         );
     } catch (error) {
-        vscode.window.showErrorMessage(error);
+        vscode.window.showErrorMessage(error.message);
     }
 }

@@ -120,6 +120,9 @@
         "test": "node ./out/test/runTest.js",
         "lint": "tslint './**/.ts'"
     },
+    "extensionDependencies": [
+        "ms-vscode.cpptools"
+    ],
     "dependencies": {
         "fs-extra": "^8.1.0",
         "node-fetch": "^2.6.0",
