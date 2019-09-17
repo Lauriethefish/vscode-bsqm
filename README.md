@@ -4,6 +4,8 @@
 
 Utilities to make modding the Oculus Quest version of Beat Saber easier
 
+To get started, run the `bsqm.configure` command and follow the instructions.
+
 ## Features
 
 -   Automatically detect and install required tools
