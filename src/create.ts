@@ -100,7 +100,7 @@ export default async function create() {
             };
             projectInfo.id =
                 (await vscode.window.showInputBox({
-                    prompt: "Mod ID",
+                    prompt: "ID",
                     placeHolder: projectInfo.id,
                     validateInput: (input) =>
                         /[a-zA-Z0-9\-]+/g.test(input)
@@ -109,7 +109,7 @@ export default async function create() {
                 })) || projectInfo.id;
             projectInfo.name =
                 (await vscode.window.showInputBox({
-                    prompt: "Mod name",
+                    prompt: "Name",
                     placeHolder: projectInfo.name,
                     validateInput: (input) =>
                         /[^\n\r\t]+/g.test(input)
@@ -118,7 +118,7 @@ export default async function create() {
                 })) || projectInfo.name;
             projectInfo.author =
                 (await vscode.window.showInputBox({
-                    prompt: "Mod author",
+                    prompt: "Author",
                     placeHolder: projectInfo.author,
                     validateInput: (input) =>
                         /[^\n\t]+/g.test(input)
@@ -127,7 +127,7 @@ export default async function create() {
                 })) || projectInfo.author;
             projectInfo.category =
                 (await vscode.window.showInputBox({
-                    prompt: "Mod category",
+                    prompt: "Category",
                     placeHolder: projectInfo.category,
                     validateInput: (input) =>
                         /(Gameplay|Other|Saber)/g.test(input)
@@ -136,13 +136,13 @@ export default async function create() {
                 })) || projectInfo.category;
             projectInfo.description = (
                 (await vscode.window.showInputBox({
-                    prompt: "Mod description",
+                    prompt: "Description",
                     placeHolder: projectInfo.description.join("\n"),
                 })) || projectInfo.description.join("\n")
             ).split("\n");
             projectInfo.url =
                 (await vscode.window.showInputBox({
-                    prompt: "Mod URL",
+                    prompt: "URL",
                     placeHolder: projectInfo.url,
                     validateInput: (input) =>
                         /https?:\/\/(\S+\/?)+/g.test(input)
@@ -151,7 +151,7 @@ export default async function create() {
                 })) || projectInfo.url;
             projectInfo.out =
                 (await vscode.window.showInputBox({
-                    prompt: "Mod output file",
+                    prompt: "Output file",
                     placeHolder: projectInfo.out,
                     validateInput: (input) =>
                         /[a-z]+/g.test(input)
