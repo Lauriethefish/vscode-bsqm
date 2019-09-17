@@ -81,7 +81,13 @@
                     "description": "Path to Android NDK build script"
                 }
             }
-        }
+        },
+        "jsonValidation": [
+            {
+                "fileMatch": "beatonmod.json",
+                "url": "https://raw.githubusercontent.com/raftario/QuestomAssets/bs_130/QuestomAssets/beatonmod-schema.json"
+            }
+        ]
     },
     "scripts": {
         "vscode:prepublish": "yarn run compile",
