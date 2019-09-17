@@ -181,6 +181,26 @@ export default async function create() {
                 }
             });
 
+            // Edit tasks
+            const ndkPath: string = vscode.workspace
+                .getConfiguration("bsqm")
+                .get("tools.ndk", "");
+            if (ndkPath !== "") {
+                const tasksPath: string = path.join(
+                    projectPath,
+                    ".vscode",
+                    "tasks.json"
+                );
+                const tasks: any = await fs.readJSON(tasksPath);
+
+                const envPath: string = process.env.PATH || "";
+                const ndkDir: string = path.dirname(ndkPath);
+                if (!envPath.includes(ndkDir)) {
+                    tasks.tasks[0].options.env.PATH = "${env:PATH};" + ndkDir;
+                    await fs.writeJSON(tasksPath, tasks, { spaces: 4 });
+                }
+            }
+
             // Initialise repository and submodules
             const git: string = vscode.workspace
                 .getConfiguration("bsqm.tools")
