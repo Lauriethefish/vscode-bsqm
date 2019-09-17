@@ -241,7 +241,7 @@ export default async function create() {
                         initChannel.appendLine(subResult.stderr.toString());
                         if (subResult.status !== 0) {
                             throw new Error(
-                                "Git subbodule initialisation failed."
+                                "Git submodule initialisation failed."
                             );
                         }
 
@@ -272,8 +272,41 @@ export default async function create() {
                                 );
                             }
                         }
+
+                        // Updating submodules
+                        progress.report({
+                            message: "Updating git submodules...",
+                        });
+                        const subUpdateResult = cp.spawnSync(
+                            git,
+                            ["submodule", "update", "--init", "--recursive"],
+                            {
+                                cwd: path.join(submodulesPath, submodule.path),
+                            }
+                        );
+                        initChannel.appendLine(
+                            subUpdateResult.stdout.toString()
+                        );
+                        initChannel.appendLine(
+                            subUpdateResult.stderr.toString()
+                        );
+                        if (subUpdateResult.status !== 0) {
+                            throw new Error("Git submodule update failed.");
+                        }
                     });
                 }
+            );
+
+            // Download libil2cpp
+            const libil2cppPath: string = path.join(
+                projectPath,
+                "extern",
+                "beatsaber-hook",
+                "shared"
+            );
+            await downlaodAndUnzip(
+                "https://files.raphaeltheriault.com/libil2cpp.zip",
+                libil2cppPath
             );
 
             // Set workspace to new project
