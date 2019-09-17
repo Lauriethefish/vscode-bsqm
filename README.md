@@ -1,7 +1,5 @@
 # Beat Saber Quest Modding
 
-[![GitHub Actions status](https://github.com/raftario/vscode-bsqm/workflows/Main%20workflow/badge.svg)](https://github.com/raftario/vscode-bsqm/actions)
-
 Utilities to make modding the Oculus Quest version of Beat Saber easier
 
 To get started, run the `bsqm.configure` command and follow the instructions.
