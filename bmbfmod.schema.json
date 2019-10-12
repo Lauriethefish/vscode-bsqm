@@ -1,0 +1,159 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema",
+    "$id": "bmbfmod",
+    "$comment": "The BMBF Mod Schema",
+    "title": "BMBF Mod",
+    "type": "object",
+    "properties": {
+        "id": {
+            "title": "ID",
+            "description": "Mod ID",
+            "type": "string",
+            "pattern": "^[0-9A-Za-z-_]+$"
+        },
+        "name": {
+            "title": "Name",
+            "description": "Mod name",
+            "type": "string",
+            "pattern": "^[^\n\r\t]+$"
+        },
+        "porter": {
+            "title": "Porter",
+            "description": "Person who ported the mod to Quest",
+            "type": "string",
+            "pattern": "^[^\n\r\t]+$"
+        },
+        "author": {
+            "title": "Author",
+            "description": "Mod author",
+            "type": "string",
+            "pattern": "^[^\n\r\t]+$"
+        },
+        "description": {
+            "title": "Description",
+            "description": "Mod description, newline separated",
+            "type": "array",
+            "items": {
+                "type": "string",
+                "pattern": "^[^\n\r]*$"
+            }
+        },
+        "category": {
+            "title": "Category",
+            "description": "Mod category",
+            "type": "string",
+            "enum": ["Gameplay", "Saber", "Other"]
+        },
+        "gameVersion": {
+            "title": "Game Version",
+            "description": "Beat Saber version the mod runs on",
+            "type": "string",
+            "pattern": "^([0-9]|[1-9][0-9]+)\\.([0-9]|[1-9][0-9]+)\\.([0-9]|[1-9][0-9]+)([p-][0-9A-Za-z-.]+)?$"
+        },
+        "version": {
+            "title": "Version",
+            "description": "Mod version",
+            "type": "string",
+            "pattern": "^([0-9]|[1-9][0-9]+)\\.([0-9]|[1-9][0-9]+)\\.([0-9]|[1-9][0-9]+)([p-][0-9A-Za-z-.]+)?$"
+        },
+        "links": {
+            "title": "Links",
+            "description": "Mod links",
+            "type": "object",
+            "properties": {
+                "project-home": {
+                    "title": "Home",
+                    "description": "Mod homepage link",
+                    "type": "string",
+                    "format": "uri",
+                    "pattern": "^https?:\\/\\/.+$"
+                }
+            }
+        },
+        "platform": {
+            "title": "Platform",
+            "description": "Physical platform the mod runs on",
+            "type": "string",
+            "enum": ["Quest"]
+        },
+        "coverImageFilename": {
+            "title": "Cover Image",
+            "description": "Filename of the cover image",
+            "type": "string"
+        },
+        "canUninstall": {
+            "title": "Uninstallable",
+            "description": "Can the mod be uninstalled",
+            "type": "boolean"
+        },
+        "components": {
+            "title": "Components",
+            "description": "Mod components",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "if": {
+                    "properties": {
+                        "type": {
+                            "enum": ["AssetsMod"]
+                        }
+                    },
+                    "required": ["type"]
+                },
+                "then": {},
+                "else": {
+                    "if": {
+                        "properties": {
+                            "type": {
+                                "enum": ["AssetsMod"]
+                            }
+                        },
+                        "required": ["type"]
+                    },
+                    "then": {
+                        "properties": {
+                            "installAction": {
+                                "title": "Install Actions",
+                                "description": "Action to perform when installing the hook mod",
+                                "type": "object",
+                                "properties": {
+                                    "installLibraryFile": {
+                                        "title": "Library File",
+                                        "description": "Library file to install",
+                                        "type": "string"
+                                    }
+                                },
+                                "required": ["installLibraryFile"]
+                            },
+                            "uninstallAction": {
+                                "title": "Uninstall Action",
+                                "description": "Action to perform when uninstalling the hook mod",
+                                "type": "object",
+                                "properties": {
+                                    "removeLibraryFile": {
+                                        "title": "Library File",
+                                        "description": "Library file to uninstall",
+                                        "type": "string"
+                                    }
+                                },
+                                "required": ["removeLibraryFile"]
+                            }
+                        }
+                    }
+                },
+                "required": ["type", "installAction", "uninstallAction"]
+            }
+        }
+    },
+    "required": [
+        "id",
+        "name",
+        "author",
+        "description",
+        "category",
+        "gameVersion",
+        "version",
+        "platform",
+        "components"
+    ]
+}

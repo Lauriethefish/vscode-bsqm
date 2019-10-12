@@ -84,8 +84,8 @@
         },
         "jsonValidation": [
             {
-                "fileMatch": "beatonmod.json",
-                "url": "https://raw.githubusercontent.com/raftario/QuestomAssets/bs_130/QuestomAssets/beatonmod-schema.json"
+                "fileMatch": "bmbfmod.json",
+                "url": "./bmbfmod.schema.json"
             }
         ]
     },
