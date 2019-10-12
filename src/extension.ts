@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 import configure from "./configure";
 import create from "./create";
 
-export function activate(context: vscode.ExtensionContext) {
+export function activate(context: vscode.ExtensionContext): void {
     const commands: { [name: string]: vscode.Disposable } = {};
 
     commands.activate = vscode.commands.registerCommand("bsqm.activate", () => {

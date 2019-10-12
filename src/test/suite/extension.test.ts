@@ -1,3 +1,5 @@
+/* global test, suite */
+
 import * as assert from "assert";
 import { before } from "mocha";
 

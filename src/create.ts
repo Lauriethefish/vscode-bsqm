@@ -5,7 +5,7 @@ import * as path from "path";
 import * as vscode from "vscode";
 import { directoryIsEmpty, downlaodAndUnzip } from "./utils";
 
-interface IModInfo {
+interface ModInfo {
     id: string;
     name: string;
     author: string;
@@ -15,24 +15,24 @@ interface IModInfo {
     out: string;
 }
 
-interface IGitSubmodule {
+interface GitSubmodule {
     path: string;
     url: string;
     branch?: string;
     commit?: string;
 }
 
-interface IModTemplate {
+interface ModTemplate {
     toFill: string[];
     toDelete: string[];
-    submodules: IGitSubmodule[];
+    submodules: GitSubmodule[];
 }
 
-export default async function create() {
+export default async function create(): Promise<void> {
     try {
-        let validPath: boolean = false;
+        let validPath = false;
         let projectPath: string | undefined;
-        let retry: boolean = true;
+        let retry = true;
         do {
             // Open folder dialog to select project location
             const installPath:
@@ -78,7 +78,7 @@ export default async function create() {
 
             // Parse template file
             const templatePath = path.join(projectPath, "template.json");
-            const template: IModTemplate = await fs.readJSON(templatePath);
+            const template: ModTemplate = await fs.readJSON(templatePath);
             await fs.remove(templatePath);
 
             // Remove unused template files
@@ -89,7 +89,7 @@ export default async function create() {
             });
 
             // Get mod info
-            const projectInfo: IModInfo = {
+            const projectInfo: ModInfo = {
                 id: "ExampleMod",
                 name: "Example Mod",
                 author: "Raphaël Thériault",
@@ -103,7 +103,7 @@ export default async function create() {
                     prompt: "ID",
                     placeHolder: projectInfo.id,
                     validateInput: (input) =>
-                        /[a-zA-Z0-9\-]+/g.test(input)
+                        /[a-zA-Z0-9-]+/g.test(input)
                             ? null
                             : "Should be unique and only contain letters, numbers and hyphens.",
                 })) || projectInfo.id;

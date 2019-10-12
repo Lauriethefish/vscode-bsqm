@@ -3,14 +3,14 @@ import * as vscode from "vscode";
 import * as which from "which";
 import { downlaodAndUnzip } from "./utils";
 
-interface ICrossString {
+interface CrossString {
     windows: string;
     macos: string;
     linux: string;
 }
 
 // Select string based on OS
-function selectCrossString(crossString: ICrossString): string {
+function selectCrossString(crossString: CrossString): string {
     switch (process.platform) {
         case "win32":
             return crossString.windows;
@@ -21,13 +21,13 @@ function selectCrossString(crossString: ICrossString): string {
     }
 }
 
-function printSuccessMessage(toolDisplayName: string, toolPath: string) {
+function printSuccessMessage(toolDisplayName: string, toolPath: string): void {
     vscode.window.showInformationMessage(
         `Found ${toolDisplayName}: ${toolPath}`
     );
 }
 
-function printErrorMessage(toolDisplayName: string) {
+function printErrorMessage(toolDisplayName: string): void {
     vscode.window.showErrorMessage(
         `No ${toolDisplayName}. Some features won't be available.`
     );
@@ -35,7 +35,7 @@ function printErrorMessage(toolDisplayName: string) {
 
 // Check for tool in PATH
 async function checkTool(
-    toolName: ICrossString,
+    toolName: CrossString,
     toolDisplayName: string
 ): Promise<string | null> {
     try {
@@ -52,9 +52,9 @@ async function checkTool(
 
 // Check for tool in PATH and ask for it or download it if not found
 async function checkOrDownloadTool(
-    toolName: ICrossString,
+    toolName: CrossString,
     toolDisplayName: string,
-    toolUrl: ICrossString,
+    toolUrl: CrossString,
     zipSubfolder: string
 ): Promise<string | null> {
     const osToolName: string = selectCrossString(toolName);
@@ -76,9 +76,9 @@ async function checkOrDownloadTool(
             )) === "Yes";
 
         if (findTool) {
-            let validPath: boolean = false;
+            let validPath = false;
             let toolPath: string | undefined;
-            let retry: boolean = false;
+            let retry = false;
             do {
                 // Open file dialog to find tool
                 const selectedPath:
@@ -94,8 +94,7 @@ async function checkOrDownloadTool(
                     path.basename(selectedPath[0].fsPath) === osToolName;
                 if (validPath) {
                     // Set tool path
-                    // @ts-ignore
-                    toolPath = selectedPath[0].fsPath;
+                    toolPath = selectedPath![0].fsPath;
                 } else {
                     // Ask for retry
                     retry =
@@ -108,10 +107,8 @@ async function checkOrDownloadTool(
             } while (!validPath && retry);
 
             if (validPath) {
-                // @ts-ignore
-                printSuccessMessage(toolDisplayName, toolPath);
-                // @ts-ignore
-                return toolPath;
+                printSuccessMessage(toolDisplayName, toolPath!);
+                return toolPath!;
             }
         }
 
@@ -124,9 +121,9 @@ async function checkOrDownloadTool(
             )) === "Yes";
 
         if (downloadTool) {
-            let validPath: boolean = false;
+            let validPath = false;
             let toolPath: string | undefined;
-            let retry: boolean = false;
+            let retry = false;
             do {
                 // Open folder dialog to select install location
                 const installPath:
@@ -142,8 +139,7 @@ async function checkOrDownloadTool(
                 validPath = installPath !== undefined;
                 if (validPath) {
                     // Set installation path
-                    // @ts-ignore
-                    toolPath = installPath[0].fsPath;
+                    toolPath = installPath![0].fsPath;
                 } else {
                     // Ask for retry
                     retry =
@@ -157,12 +153,10 @@ async function checkOrDownloadTool(
 
             if (validPath) {
                 // Download and unzip tool
-                // @ts-ignore
-                await downlaodAndUnzip(osToolUrl, toolPath);
+                await downlaodAndUnzip(osToolUrl, toolPath!);
 
                 // Set to tool path
-                // @ts-ignore
-                toolPath = path.join(toolPath, zipSubfolder, osToolName);
+                toolPath = path.join(toolPath!, zipSubfolder, osToolName);
                 printSuccessMessage(toolDisplayName, toolPath);
                 return toolPath;
             }
@@ -175,7 +169,7 @@ async function checkOrDownloadTool(
 
 // Check for Git binary
 async function checkGit(): Promise<string | null> {
-    const gitName: ICrossString = {
+    const gitName: CrossString = {
         windows: "git.exe",
         macos: "git",
         linux: "git",
@@ -187,12 +181,12 @@ async function checkGit(): Promise<string | null> {
 
 // Check for adb binary
 async function checkAdb(): Promise<string | null> {
-    const adbName: ICrossString = {
+    const adbName: CrossString = {
         windows: "adb.exe",
         macos: "adb",
         linux: "adb",
     };
-    const adbUrl: ICrossString = {
+    const adbUrl: CrossString = {
         windows:
             "https://dl.google.com/android/repository/platform-tools-latest-windows.zip",
         macos:
@@ -212,13 +206,13 @@ async function checkAdb(): Promise<string | null> {
 
 // Check for Android NDK build script
 async function checkNdk(): Promise<string | null> {
-    const ndkName: ICrossString = {
+    const ndkName: CrossString = {
         windows: "ndk-build.cmd",
         macos: "ndk-build",
         linux: "ndk-build",
     };
-    const ndkVer: string = "r20";
-    const ndkUrl: ICrossString = {
+    const ndkVer = "r20";
+    const ndkUrl: CrossString = {
         windows: `https://dl.google.com/android/repository/android-ndk-${ndkVer}-windows-x86_64.zip`,
         macos: `https://dl.google.com/android/repository/android-ndk-${ndkVer}-darwin-x86_64.zip`,
         linux: `https://dl.google.com/android/repository/android-ndk-${ndkVer}-linux-x86_64.zip`,
@@ -233,7 +227,7 @@ async function checkNdk(): Promise<string | null> {
     return ndkPath;
 }
 
-export default async function configure() {
+export default async function configure(): Promise<void> {
     try {
         const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration();
 

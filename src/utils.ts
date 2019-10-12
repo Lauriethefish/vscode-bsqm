@@ -3,7 +3,10 @@ import fetch, { Response } from "node-fetch";
 import * as unzipper from "unzipper";
 import * as vscode from "vscode";
 
-export async function downlaodAndUnzip(url: string, path: string) {
+export async function downlaodAndUnzip(
+    url: string,
+    path: string
+): Promise<void> {
     await vscode.window.withProgress(
         {
             title: `Downloading ${url}`,
