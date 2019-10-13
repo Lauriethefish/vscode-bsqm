@@ -91,8 +91,8 @@
     },
     "scripts": {
         "vscode:prepublish": "yarn run compile",
-        "compile": "tsc -p ./",
-        "watch": "tsc -watch -p ./",
+        "compile": "tsc",
+        "watch": "tsc -watch",
         "pretest": "yarn run compile",
         "test": "node ./out/test/runTest.js",
         "lint": "prettier --write **/*.{json,md,yml,html} && eslint --fix **/*.{ts,js}"
