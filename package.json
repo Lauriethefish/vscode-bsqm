@@ -85,7 +85,7 @@
         "jsonValidation": [
             {
                 "fileMatch": "bmbfmod.json",
-                "url": "./bmbfmod.schema.json"
+                "url": "./media/bmbfmod.schema.json"
             }
         ]
     },
