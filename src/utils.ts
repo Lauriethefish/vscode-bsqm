@@ -1,7 +1,7 @@
 import * as fs from "fs-extra";
-import fetch, { Response } from "node-fetch";
 import * as unzipper from "unzipper";
 import * as vscode from "vscode";
+import fetch, { Response } from "node-fetch";
 
 export async function downlaodAndUnzip(
     url: string,

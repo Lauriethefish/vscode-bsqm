@@ -13,7 +13,9 @@ export function activate(context: vscode.ExtensionContext): void {
         "bsqm.configure",
         configure
     );
-    commands.create = vscode.commands.registerCommand("bsqm.create", create);
+    commands.create = vscode.commands.registerCommand("bsqm.create", () =>
+        create(context.extensionPath)
+    );
 
     Object.keys(commands).forEach((command) => {
         context.subscriptions.push(commands[command]);

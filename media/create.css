@@ -1,0 +1,156 @@
+* {
+    color: var(--vscode-foreground);
+    border: none;
+}
+
+:focus {
+    outline-color: var(--vscode-focusBorder);
+}
+
+::selection {
+    background-color: var(--vscode-selection-background);
+}
+
+a {
+    color: var(--vscode-textLink-foreground);
+}
+
+a:hover, a:active {
+    color: var(--vscode-textLink-activeForeground);
+}
+
+hr {
+    color: var(--vscode-text-separator-foreground);
+}
+
+button, input[type=submit] {
+    background-color: var(--vscode-button-background);
+    color: var(--vscode-button-foreground);
+    padding: 8px 16px;
+}
+
+button:hover, input[type=submit]:hover {
+    background-color: var(--vscode-button-hoverBackground);
+    cursor: pointer;
+}
+
+select {
+    background-color: var(--vscode-dropdown-background);
+    border: 1px solid var(--vscode-dropdown-border);
+    padding: 2px 4px;
+}
+
+select option {
+    background-color: var(--vscode-dropdown-listBackground);
+    padding: 2px 4px;
+}
+
+select, select option {
+    color: var(--vscode-dropdown-foreground);
+}
+
+input:not([type=submit]), textarea {
+    color: var(--vscode-input-foreground);
+    background-color: var(--vscode-input-background);
+    border: 1px solid var(--vscode-input-border);
+    padding: 4px 8px;
+}
+
+input:not([type=submit]):invalid, textarea:invalid {
+    border: 1px solid var(--vscode-inputValidation-errorBorder);
+}
+
+
+#info, #main {
+    margin: 32px;
+}
+
+#main {
+    display: grid;
+    grid-template:
+        [row1-start] "id description" auto [row1-end]
+        [row2-start] "name description" auto [row2-end]
+        [row3-start] "author description" auto [row3-end]
+        [row4-start] "category description" auto [row4-end]
+        [row5-start] "submit path" auto [row5-end]
+        / 1fr 2fr;
+}
+
+#id {
+    grid-area: id;
+    margin-right: 32%;
+}
+
+#id input {
+    width: 100%;
+}
+
+#name {
+    grid-area: name;
+    margin-right: 32%;
+}
+
+#name input {
+    width: 100%;
+}
+
+#author {
+    grid-area: author;
+    margin-right: 32%;
+}
+
+#author input {
+    width: 100%;
+}
+
+#description {
+    grid-area: description;
+    display: flex;
+    flex-flow: column;
+}
+
+#description h3 {
+    flex: 0 1 auto;
+}
+
+#description textarea {
+    width: 100%;
+    height: 100%;
+    flex: 1 1 auto;
+}
+
+#category {
+    grid-area: category;
+    margin-right: 32%;
+}
+
+#category select {
+    width: 100%;
+}
+
+#submit {
+    grid-area: submit;
+    margin-right: 32%;
+}
+
+#submit input {
+    width: 100%;
+}
+
+#browse {
+    grid-area: path;
+}
+
+#browse div {
+    display: flex;
+    flex-flow: row;
+}
+
+#browse button {
+    flex: 0 1 auto;
+}
+
+#browse input {
+    width: 100%;
+    flex: 1 1 auto;
+}

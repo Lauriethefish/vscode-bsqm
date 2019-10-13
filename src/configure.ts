@@ -227,52 +227,53 @@ async function checkNdk(): Promise<string | null> {
     return ndkPath;
 }
 
-export default async function configure(): Promise<void> {
-    try {
-        const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration();
+async function configure(): Promise<void> {
+    const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration();
 
-        const git: string | null = await checkGit();
-        await config.update(
-            "bsqm.tools.git",
-            git,
-            vscode.ConfigurationTarget.Global
-        );
-        const adb: string | null = await checkAdb();
-        await config.update(
-            "bsqm.tools.adb",
-            adb,
-            vscode.ConfigurationTarget.Global
-        );
-        const ndk: string | null = await checkNdk();
-        await config.update(
-            "bsqm.tools.ndk",
-            ndk,
-            vscode.ConfigurationTarget.Global
-        );
+    const git: string | null = await checkGit();
+    await config.update(
+        "bsqm.tools.git",
+        git,
+        vscode.ConfigurationTarget.Global
+    );
+    const adb: string | null = await checkAdb();
+    await config.update(
+        "bsqm.tools.adb",
+        adb,
+        vscode.ConfigurationTarget.Global
+    );
+    const ndk: string | null = await checkNdk();
+    await config.update(
+        "bsqm.tools.ndk",
+        ndk,
+        vscode.ConfigurationTarget.Global
+    );
 
-        // Update C/C++ config
-        const cppConfig = vscode.workspace.getConfiguration("C_Cpp");
-        if (ndk !== null) {
-            let ndkDir = path.dirname(ndk);
-            if (!ndkDir.endsWith(path.sep)) {
-                ndkDir += path.sep;
-            }
-            ndkDir += "**";
-
-            const includePath: string[] = cppConfig.get(
-                "default.includePath",
-                []
-            );
-            if (!includePath.includes(ndkDir)) {
-                includePath.push(ndkDir);
-            }
-
-            await cppConfig.update(
-                "default.includePath",
-                includePath,
-                vscode.ConfigurationTarget.Global
-            );
+    // Update C/C++ config
+    const cppConfig = vscode.workspace.getConfiguration("C_Cpp");
+    if (ndk !== null) {
+        let ndkDir = path.dirname(ndk);
+        if (!ndkDir.endsWith(path.sep)) {
+            ndkDir += path.sep;
         }
+        ndkDir += "**";
+
+        const includePath: string[] = cppConfig.get("default.includePath", []);
+        if (!includePath.includes(ndkDir)) {
+            includePath.push(ndkDir);
+        }
+
+        await cppConfig.update(
+            "default.includePath",
+            includePath,
+            vscode.ConfigurationTarget.Global
+        );
+    }
+}
+
+export default async function c(): Promise<void> {
+    try {
+        await configure();
     } catch (error) {
         vscode.window.showErrorMessage(error.message);
     }

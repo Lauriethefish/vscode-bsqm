@@ -95,7 +95,7 @@
         "watch": "tsc -watch -p ./",
         "pretest": "yarn run compile",
         "test": "node ./out/test/runTest.js",
-        "lint": "eslint --fix **/*.{ts,js} && prettier --write **/*.{json,md,yml}'"
+        "lint": "prettier --write **/*.{json,md,yml,html} && eslint --fix **/*.{ts,js}"
     },
     "extensionDependencies": [
         "ms-vscode.cpptools"
@@ -144,12 +144,12 @@
         }
     },
     "lint-staged": {
-        "*.{ts,js}": [
-            "eslint --fix",
+        "*.{json,md,yml,html}": [
+            "prettier --write",
             "git add"
         ],
-        "*.{json,md,yml}": [
-            "prettier --write",
+        "*.{ts,js}": [
+            "eslint --fix",
             "git add"
         ]
     }

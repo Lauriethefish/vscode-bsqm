@@ -11,7 +11,6 @@ interface ModInfo {
     author: string;
     category: string;
     description: string[];
-    url: string;
     out: string;
 }
 
@@ -28,312 +27,298 @@ interface ModTemplate {
     submodules: GitSubmodule[];
 }
 
-export default async function create(): Promise<void> {
-    try {
-        let validPath = false;
-        let projectPath: string | undefined;
-        let retry = true;
-        do {
-            // Open folder dialog to select project location
-            const installPath:
-                | vscode.Uri[]
-                | undefined = await vscode.window.showOpenDialog({
-                canSelectFiles: false,
-                canSelectFolders: true,
-                canSelectMany: false,
-                openLabel: "Select empty project folder",
+function getNonce(): string {
+    let text = "";
+    const possible =
+        "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+    for (let i = 0; i < 32; i++) {
+        text += possible.charAt(Math.floor(Math.random() * possible.length));
+    }
+    return text;
+}
+
+async function openFolder(): Promise<string | undefined> {
+    let validPath = false;
+    let projectPath: string | undefined = undefined;
+    let retry = true;
+    do {
+        // Open folder dialog to select project location
+        const installPath:
+            | vscode.Uri[]
+            | undefined = await vscode.window.showOpenDialog({
+            canSelectFiles: false,
+            canSelectFolders: true,
+            canSelectMany: false,
+            openLabel: "Select empty project folder",
+        });
+
+        // Check if path is valid
+        validPath =
+            installPath !== undefined &&
+            (await directoryIsEmpty(installPath[0].fsPath));
+        if (validPath && installPath !== undefined) {
+            // Set project path
+            projectPath = installPath[0].fsPath;
+        } else if (installPath === undefined) {
+            retry = false;
+        } else {
+            vscode.window.showErrorMessage("Folder must be empty.");
+        }
+    } while (!validPath && retry);
+
+    return projectPath;
+}
+
+async function setupTemplate(projectPath: string): Promise<void> {
+    // Get parent path and download path
+    const parentPath: string = path.dirname(projectPath);
+    const downloadPath: string = path.join(
+        parentPath,
+        "bmbf-mod-template-master"
+    );
+
+    // Download and unzip template
+    await downlaodAndUnzip(
+        "https://github.com/raftario/bmbf-mod-template/archive/master.zip",
+        parentPath
+    );
+
+    // Move downloaded template to project dir
+    await fs.copy(downloadPath, projectPath);
+    await fs.remove(downloadPath);
+}
+
+async function fillTemplate(
+    projectPath: string,
+    projectInfo: ModInfo
+): Promise<ModTemplate> {
+    // Parse template file
+    const templatePath = path.join(projectPath, "template.json");
+    const template: ModTemplate = await fs.readJSON(templatePath);
+    await fs.remove(templatePath);
+
+    // Remove unused template files
+    for (const file of template.toDelete) {
+        if (projectPath !== undefined) {
+            await fs.remove(path.join(projectPath, file));
+        }
+    }
+
+    // Fill in template
+    for (const file of template.toFill) {
+        if (projectPath !== undefined) {
+            const filePath: string = path.join(projectPath, file);
+            const contents: string = fs.readFileSync(filePath, {
+                encoding: "utf8",
+            });
+            let newContents: string = nunjucks.renderString(contents, {
+                mod: projectInfo,
             });
 
-            // Check if path is valid
-            validPath =
-                installPath !== undefined &&
-                (await directoryIsEmpty(installPath[0].fsPath));
-            if (validPath && installPath !== undefined) {
-                // Set project path
-                projectPath = installPath[0].fsPath;
-            } else if (installPath === undefined) {
-                retry = false;
-            } else {
-                vscode.window.showErrorMessage("Folder must be empty.");
+            // Remove extra newlines and commas in JSON files
+            if (filePath.endsWith(".json")) {
+                newContents = newContents.replace(/,(\s*)([\]}])/g, "$1$2");
+                newContents = newContents.replace(/\n{2,}/g, "\n");
             }
-        } while (!validPath && retry);
-
-        if (validPath && projectPath !== undefined) {
-            // Get parent path and download path
-            const parentPath: string = path.dirname(projectPath);
-            const downloadPath: string = path.join(
-                parentPath,
-                "beaton-mod-template-master"
-            );
-
-            // Download and unzip template
-            await downlaodAndUnzip(
-                "https://github.com/raftario/beaton-mod-template/archive/master.zip",
-                parentPath
-            );
-
-            // Move downloaded template to project dir
-            await fs.copy(downloadPath, projectPath);
-            await fs.remove(downloadPath);
-
-            // Parse template file
-            const templatePath = path.join(projectPath, "template.json");
-            const template: ModTemplate = await fs.readJSON(templatePath);
-            await fs.remove(templatePath);
-
-            // Remove unused template files
-            template.toDelete.forEach(async (file) => {
-                if (projectPath !== undefined) {
-                    await fs.remove(path.join(projectPath, file));
-                }
-            });
-
-            // Get mod info
-            const projectInfo: ModInfo = {
-                id: "ExampleMod",
-                name: "Example Mod",
-                author: "Raphaël Thériault",
-                category: "Other",
-                description: ["A mod that does things."],
-                url: "https://github.com/raftario/beaton-mod-template",
-                out: "examplemod",
-            };
-            projectInfo.id =
-                (await vscode.window.showInputBox({
-                    prompt: "ID",
-                    placeHolder: projectInfo.id,
-                    validateInput: (input) =>
-                        /[a-zA-Z0-9-]+/g.test(input)
-                            ? null
-                            : "Should be unique and only contain letters, numbers and hyphens.",
-                })) || projectInfo.id;
-            projectInfo.name =
-                (await vscode.window.showInputBox({
-                    prompt: "Name",
-                    placeHolder: projectInfo.name,
-                    validateInput: (input) =>
-                        /[^\n\r\t]+/g.test(input)
-                            ? null
-                            : "Should fit on a single line.",
-                })) || projectInfo.name;
-            projectInfo.author =
-                (await vscode.window.showInputBox({
-                    prompt: "Author",
-                    placeHolder: projectInfo.author,
-                    validateInput: (input) =>
-                        /[^\n\t]+/g.test(input)
-                            ? null
-                            : "Should fit on a single line.",
-                })) || projectInfo.author;
-            projectInfo.category =
-                (await vscode.window.showInputBox({
-                    prompt: "Category",
-                    placeHolder: projectInfo.category,
-                    validateInput: (input) =>
-                        /(Gameplay|Other|Saber)/g.test(input)
-                            ? null
-                            : "Should be one of Gameplay, Saber or Other.",
-                })) || projectInfo.category;
-            projectInfo.description = (
-                (await vscode.window.showInputBox({
-                    prompt: "Description",
-                    placeHolder: projectInfo.description.join("\n"),
-                })) || projectInfo.description.join("\n")
-            ).split("\n");
-            projectInfo.url =
-                (await vscode.window.showInputBox({
-                    prompt: "URL",
-                    placeHolder: projectInfo.url,
-                    validateInput: (input) =>
-                        /https?:\/\/(\S+\/?)+/g.test(input)
-                            ? null
-                            : "Should be a valid url.",
-                })) || projectInfo.url;
-            projectInfo.out =
-                (await vscode.window.showInputBox({
-                    prompt: "Output file",
-                    placeHolder: projectInfo.out,
-                    validateInput: (input) =>
-                        /[a-z]+/g.test(input)
-                            ? null
-                            : "Should only contain lowercase letters.",
-                })) || projectInfo.out;
-
-            // Fill in template
-            template.toFill.forEach(async (file) => {
-                if (projectPath !== undefined) {
-                    const filePath: string = path.join(projectPath, file);
-                    const contents: string = fs.readFileSync(filePath, {
-                        encoding: "utf8",
-                    });
-                    let newContents: string = nunjucks.renderString(contents, {
-                        mod: projectInfo,
-                    });
-                    if (filePath.endsWith(".json")) {
-                        newContents = newContents.replace(
-                            /,(\s*)([\]}])/g,
-                            "$1$2"
-                        );
-                    }
-                    fs.writeFileSync(filePath, newContents, {
-                        encoding: "utf8",
-                    });
-                }
-            });
-
-            // Edit tasks
-            const ndkPath: string = vscode.workspace
-                .getConfiguration("bsqm")
-                .get("tools.ndk", "");
-            if (ndkPath !== "") {
-                const tasksPath: string = path.join(
-                    projectPath,
-                    ".vscode",
-                    "tasks.json"
-                );
-                const tasks: any = await fs.readJSON(tasksPath);
-
-                const envPath: string = process.env.PATH || "";
-                const ndkDir: string = path.dirname(ndkPath);
-                if (!envPath.includes(ndkDir)) {
-                    tasks.tasks[0].options.env.PATH = "${env:PATH};" + ndkDir;
-                    await fs.writeJSON(tasksPath, tasks, { spaces: 4 });
-                }
+            // Remove extra newlines in Markdown files
+            if (filePath.endsWith(".md")) {
+                newContents = newContents.replace(/\n{3,}/g, "\n\n");
             }
 
-            // Initialise repository and submodules
-            const git: string = vscode.workspace
-                .getConfiguration("bsqm.tools")
-                .get("git", "git");
-            await vscode.window.withProgress(
-                {
-                    title: "Setting up project",
-                    location: vscode.ProgressLocation.Notification,
-                    cancellable: false,
-                },
-                async (progress) => {
-                    const initChannel = vscode.window.createOutputChannel(
-                        "BSQM Project Initialisation"
-                    );
-                    initChannel.show();
-
-                    progress.report({
-                        message: "Initialising git repository...",
-                    });
-                    const initResult = cp.spawnSync(git, ["init"], {
-                        cwd: projectPath,
-                    });
-                    initChannel.appendLine(initResult.stdout.toString());
-                    initChannel.appendLine(initResult.stderr.toString());
-                    if (initResult.status !== 0) {
-                        throw new Error(
-                            "Git repository initialisation failed."
-                        );
-                    }
-
-                    progress.report({
-                        message: "Initialising git submodules...",
-                    });
-                    // Create submodules path
-                    const submodulesPath: string =
-                        projectPath !== undefined
-                            ? path.join(projectPath, "extern")
-                            : "extern";
-                    await fs.mkdirp(submodulesPath);
-                    // Loop over submodules
-                    template.submodules.forEach((submodule) => {
-                        // Add submodule
-                        let submoduleArgs: string[] = ["submodule", "add"];
-                        if (submodule.branch !== undefined) {
-                            submoduleArgs = submoduleArgs.concat([
-                                "-b",
-                                submodule.branch,
-                            ]);
-                        }
-                        submoduleArgs = submoduleArgs.concat([
-                            submodule.url,
-                            `extern/${submodule.path}`,
-                        ]);
-                        const subResult = cp.spawnSync(git, submoduleArgs, {
-                            cwd: projectPath,
-                        });
-                        initChannel.appendLine(subResult.stdout.toString());
-                        initChannel.appendLine(subResult.stderr.toString());
-                        if (subResult.status !== 0) {
-                            throw new Error(
-                                "Git submodule initialisation failed."
-                            );
-                        }
-
-                        // Checkout submodule
-                        if (
-                            submodule.commit !== undefined &&
-                            projectPath !== undefined
-                        ) {
-                            const subCheckResult = cp.spawnSync(
-                                git,
-                                ["checkout", submodule.commit],
-                                {
-                                    cwd: path.join(
-                                        submodulesPath,
-                                        submodule.path
-                                    ),
-                                }
-                            );
-                            initChannel.appendLine(
-                                subCheckResult.stdout.toString()
-                            );
-                            initChannel.appendLine(
-                                subCheckResult.stderr.toString()
-                            );
-                            if (subCheckResult.status !== 0) {
-                                throw new Error(
-                                    "Git subbodule checkout failed."
-                                );
-                            }
-                        }
-
-                        // Updating submodules
-                        progress.report({
-                            message: "Updating git submodules...",
-                        });
-                        const subUpdateResult = cp.spawnSync(
-                            git,
-                            ["submodule", "update", "--init", "--recursive"],
-                            {
-                                cwd: path.join(submodulesPath, submodule.path),
-                            }
-                        );
-                        initChannel.appendLine(
-                            subUpdateResult.stdout.toString()
-                        );
-                        initChannel.appendLine(
-                            subUpdateResult.stderr.toString()
-                        );
-                        if (subUpdateResult.status !== 0) {
-                            throw new Error("Git submodule update failed.");
-                        }
-                    });
-                }
-            );
-
-            // Download libil2cpp
-            const libil2cppPath: string = path.join(
-                projectPath,
-                "extern",
-                "beatsaber-hook",
-                "shared"
-            );
-            await downlaodAndUnzip(
-                "https://files.raphaeltheriault.com/libil2cpp.zip",
-                libil2cppPath
-            );
-
-            // Set workspace to new project
-            vscode.workspace.updateWorkspaceFolders(0, 0, {
-                uri: vscode.Uri.file(projectPath),
+            await fs.writeFile(filePath, newContents, {
+                encoding: "utf8",
             });
         }
+    }
+
+    return template;
+}
+
+async function initRepo(
+    projectPath: string,
+    template: ModTemplate
+): Promise<void> {
+    const git: string = vscode.workspace
+        .getConfiguration("bsqm.tools")
+        .get("git", "git");
+    await vscode.window.withProgress(
+        {
+            title: "Setting up project",
+            location: vscode.ProgressLocation.Notification,
+            cancellable: false,
+        },
+        async (progress) => {
+            const initChannel = vscode.window.createOutputChannel(
+                "BSQM Project Initialisation"
+            );
+            initChannel.show();
+
+            // Init git repository
+            progress.report({
+                message: "Initialising git repository...",
+            });
+            const initResult = cp.spawnSync(git, ["init"], {
+                cwd: projectPath,
+            });
+            initChannel.appendLine(initResult.stdout.toString());
+            initChannel.appendLine(initResult.stderr.toString());
+            if (initResult.status !== 0) {
+                throw new Error("Git repository initialisation failed.");
+            }
+
+            // Init git submodules
+            progress.report({
+                message: "Initialising git submodules...",
+            });
+            // Create submodules path
+            const submodulesPath: string =
+                projectPath !== undefined
+                    ? path.join(projectPath, "extern")
+                    : "extern";
+            await fs.mkdirp(submodulesPath);
+            // Loop over submodules
+            for (const submodule of template.submodules) {
+                // Add submodule
+                let submoduleArgs: string[] = ["submodule", "add"];
+                if (submodule.branch !== undefined) {
+                    submoduleArgs = submoduleArgs.concat([
+                        "-b",
+                        submodule.branch,
+                    ]);
+                }
+                submoduleArgs = submoduleArgs.concat([
+                    submodule.url,
+                    `extern/${submodule.path}`,
+                ]);
+                const subResult = cp.spawnSync(git, submoduleArgs, {
+                    cwd: projectPath,
+                });
+                initChannel.appendLine(subResult.stdout.toString());
+                initChannel.appendLine(subResult.stderr.toString());
+                if (subResult.status !== 0) {
+                    throw new Error("Git submodule initialisation failed.");
+                }
+
+                // Checkout submodule
+                if (
+                    submodule.commit !== undefined &&
+                    projectPath !== undefined
+                ) {
+                    const subCheckResult = cp.spawnSync(
+                        git,
+                        ["checkout", submodule.commit],
+                        {
+                            cwd: path.join(submodulesPath, submodule.path),
+                        }
+                    );
+                    initChannel.appendLine(subCheckResult.stdout.toString());
+                    initChannel.appendLine(subCheckResult.stderr.toString());
+                    if (subCheckResult.status !== 0) {
+                        throw new Error("Git subbodule checkout failed.");
+                    }
+                }
+            }
+
+            // Update all submodules
+            progress.report({
+                message: "Updating git submodules...",
+            });
+            const subUpdateResult = cp.spawnSync(
+                git,
+                ["submodule", "update", "--init", "--recursive"],
+                {
+                    cwd: submodulesPath,
+                }
+            );
+            initChannel.appendLine(subUpdateResult.stdout.toString());
+            initChannel.appendLine(subUpdateResult.stderr.toString());
+            if (subUpdateResult.status !== 0) {
+                throw new Error("Git submodule update failed.");
+            }
+        }
+    );
+}
+
+async function addIl2cpp(projectPath: string): Promise<void> {
+    // Download libil2cpp
+    const libil2cppPath: string = path.join(
+        projectPath,
+        "extern",
+        "beatsaber-hook",
+        "shared"
+    );
+    await downlaodAndUnzip(
+        "https://files.raphaeltheriault.com/libil2cpp.zip",
+        libil2cppPath
+    );
+
+    // Set workspace to new project
+    vscode.workspace.updateWorkspaceFolders(0, 0, {
+        uri: vscode.Uri.file(projectPath),
+    });
+}
+
+async function create(extensionPath: string): Promise<void> {
+    // Create webview panel
+    const panel = vscode.window.createWebviewPanel(
+        "bsqmCreate",
+        "Create a new Beat Saber Quest mod",
+        vscode.ViewColumn.Active,
+        {
+            enableScripts: true,
+            localResourceRoots: [
+                vscode.Uri.file(path.join(extensionPath, "media")),
+            ],
+        }
+    );
+
+    // Fill webview HTML
+    const nonce = getNonce();
+    const jsPath = path.join(extensionPath, "media", "create.js");
+    const cssPath = path.join(extensionPath, "media", "create.css");
+    const htmlPath = path.join(extensionPath, "media", "create.html");
+    const jsUri = panel.webview.asWebviewUri(vscode.Uri.file(jsPath));
+    const cssUri = panel.webview.asWebviewUri(vscode.Uri.file(cssPath));
+    const htmlContents = (await fs.readFile(htmlPath, "UTF-8"))
+        .replace("{{ jsUri }}", jsUri.toString())
+        .replace("{{ cssUri }}", cssUri.toString())
+        .replace(/{{ nonce }}/g, nonce);
+    /* eslint-disable require-atomic-updates */
+    panel.webview.html = htmlContents;
+    /* eslint-enable require-atomic-updates */
+
+    panel.webview.onDidReceiveMessage(async (message) => {
+        if (message.type === "browse") {
+            // Select project folder
+            const projectPath = await openFolder();
+            await panel.webview.postMessage({
+                type: "browse",
+                payload: projectPath,
+            });
+        } else if (message.type === "submit") {
+            panel.dispose();
+
+            // Create project
+            const projectPath = message.payload.projectFolder;
+            await setupTemplate(projectPath);
+            const projectInfo: ModInfo = {
+                id: message.payload.id,
+                name: message.payload.name,
+                author: message.payload.author,
+                category: message.payload.category,
+                description: message.payload.description,
+                out: message.payload.id.toLowerCase(),
+            };
+            const template = await fillTemplate(projectPath, projectInfo);
+            await initRepo(projectPath, template);
+            await addIl2cpp(projectPath);
+        }
+    });
+}
+
+export default async function c(extensionPath: string): Promise<void> {
+    try {
+        await create(extensionPath);
     } catch (error) {
         vscode.window.showErrorMessage(error.message);
     }
