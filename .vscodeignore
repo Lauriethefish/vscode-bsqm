@@ -3,8 +3,12 @@
 out/test/**
 src/**
 .gitignore
-**/tsconfig.json
+tsconfig.json
 **/*.map
 **/*.ts
+**/*.log
 .github/**
-**/.prettierrc.json
+.prettierrc.json
+.eslintrc.json
+.eslintignore
+yarn.lock
