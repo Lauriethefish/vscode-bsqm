@@ -6,8 +6,11 @@ To get started, run the `bsqm.configure` command and follow the instructions.
 
 ## Features
 
--   Automatically detect and install required tools
--   Automatically create and configure new projects
+-   [x] Development tools detection and installation
+-   [x] Project creation
+-   [ ] Custom build and push tasks
+-   [x] Manifest instellisense
+-   [ ] Custom C/C++ intellisense
 
 ## Requirements
 
