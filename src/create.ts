@@ -108,7 +108,7 @@ async function fillTemplate(
     for (const file of template.toFill) {
         if (projectPath !== undefined) {
             const filePath: string = path.join(projectPath, file);
-            const contents: string = fs.readFileSync(filePath, {
+            const contents: string = await fs.readFile(filePath, {
                 encoding: "utf8",
             });
             let newContents: string = nunjucks.renderString(contents, {
@@ -251,11 +251,6 @@ async function addIl2cpp(projectPath: string): Promise<void> {
         "https://files.raphaeltheriault.com/libil2cpp.zip",
         libil2cppPath
     );
-
-    // Set workspace to new project
-    vscode.workspace.updateWorkspaceFolders(0, 0, {
-        uri: vscode.Uri.file(projectPath),
-    });
 }
 
 async function create(extensionPath: string): Promise<void> {
@@ -312,6 +307,11 @@ async function create(extensionPath: string): Promise<void> {
             const template = await fillTemplate(projectPath, projectInfo);
             await initRepo(projectPath, template);
             await addIl2cpp(projectPath);
+
+            // Set workspace to new project
+            vscode.workspace.updateWorkspaceFolders(0, 0, {
+                uri: vscode.Uri.file(projectPath),
+            });
         }
     });
 }
