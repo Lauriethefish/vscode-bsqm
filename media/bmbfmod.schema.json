@@ -100,12 +100,159 @@
                     },
                     "required": ["type"]
                 },
-                "then": {},
+                "then": {
+                    "properties": {
+                        "preloadFiles": {
+                            "title": "Preload Files",
+                            "description": "Files to preload for an asset mod",
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "oneOf": [
+                                    {
+                                        "type": "string",
+                                        "pattern": "^!({{)*+!(}})$"
+                                    },
+                                    {
+                                        "type": "string",
+                                        "enum": [
+                                            "{{Saber}}",
+                                            "{{Note}}",
+                                            "{{MenuTrail}}",
+                                            "{{Trail}}",
+                                            "{{Platform}}"
+                                        ]
+                                    }
+                                ]
+                            }
+                        },
+                        "actions": {
+                            "title": "Actions",
+                            "description": "Actions for the mod to perform",
+                            "type": "object",
+                            "if": {
+                                "properties": {
+                                    "type": {
+                                        "enum": ["ReplaceAsset"]
+                                    }
+                                },
+                                "required": ["type"]
+                            },
+                            "then": {
+                                "properties": {
+                                    "stepNumber": {
+                                        "title": "Step Number",
+                                        "description": "The order of the steps to perform",
+                                        "type": "integer",
+                                        "minimum": 1
+                                    },
+                                    "type": {
+                                        "title": "Type",
+                                        "description": "Type of the action",
+                                        "type": "string",
+                                        "enum": ["ReplaceAsset"]
+                                    },
+                                    "fromDataFile": {
+                                        "title": "From Data File",
+                                        "description": "The data file to load the asset from",
+                                        "type": "string"
+                                    },
+                                    "locator": {
+                                        "title": "Locator",
+                                        "description": "A locator to the asset to replace",
+                                        "type": "object",
+                                        "properties": {
+                                            "typeIs": {
+                                                "title": "Type",
+                                                "description": "Match this type in the assets",
+                                                "type": "string",
+                                                "enum": [
+                                                    "Mesh",
+                                                    "Transform",
+                                                    "GameObject",
+                                                    "Texture2D",
+                                                    "AudioClip",
+                                                    "Sprite",
+                                                    "Text",
+                                                    "MeshFilter",
+                                                    "Component",
+                                                    "MonoBehaviour",
+                                                    "Material"
+                                                ]
+                                            },
+                                            "nameIs": {
+                                                "title": "Name",
+                                                "description": "Match this name in the assets",
+                                                "type": "string"
+                                            },
+                                            "pathIs": {
+                                                "title": "Path",
+                                                "description": "Match this path in the assets",
+                                                "type": "object",
+                                                "properties": {
+                                                    "assetFilename": {
+                                                        "title": "Asset Filename",
+                                                        "description": "Filename to find the asset",
+                                                        "type": "string"
+                                                    },
+                                                    "pathId": {
+                                                        "title": "PathID",
+                                                        "description": "Path ID of the asset",
+                                                        "type": "integer"
+                                                    },
+                                                    "fileType": {
+                                                        "title": "File Type",
+                                                        "description": "The predefined file to use",
+                                                        "type": "string",
+                                                        "enum": [
+                                                            "Saber",
+                                                            "Note",
+                                                            "MenuTrail",
+                                                            "Trail",
+                                                            "Platform"
+                                                        ]
+                                                    }
+                                                },
+                                                "oneOf": [
+                                                    {
+                                                        "required": [
+                                                            "fileType",
+                                                            "pathId"
+                                                        ]
+                                                    },
+                                                    {
+                                                        "required": [
+                                                            "assetFilename",
+                                                            "pathId"
+                                                        ]
+                                                    }
+                                                ]
+                                            }
+                                        },
+                                        "oneOf": [
+                                            {
+                                                "required": ["typeIs", "nameIs"]
+                                            },
+                                            {
+                                                "required": ["pathIs"]
+                                            }
+                                        ]
+                                    }
+                                },
+                                "required": [
+                                    "stepNumber",
+                                    "type",
+                                    "fromDataFile"
+                                ]
+                            }
+                        }
+                    }
+                },
                 "else": {
                     "if": {
                         "properties": {
                             "type": {
-                                "enum": ["AssetsMod"]
+                                "enum": ["HookMod"]
                             }
                         },
                         "required": ["type"]
