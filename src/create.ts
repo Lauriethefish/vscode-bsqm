@@ -262,6 +262,20 @@ async function initRepo(
     );
 }
 
+async function addIl2cpp(projectPath: string): Promise<void> {
+    // Download libil2cpp
+    const libil2cppPath: string = path.join(
+        projectPath,
+        "extern",
+        "beatsaber-hook",
+        "shared"
+    );
+    await downlaodAndUnzip(
+        "https://files.raphaeltheriault.com/libil2cpp.zip",
+        libil2cppPath
+    );
+}
+
 async function create(extensionPath: string): Promise<void> {
     // Create webview panel
     const panel = vscode.window.createWebviewPanel(
@@ -307,7 +321,7 @@ async function create(extensionPath: string): Promise<void> {
                 payload: libil2cpp,
             });
         } else if (message.type === "ndkbundle") {
-            // Select ndkbundle folder
+            // Select ndk-bundle folder
             const ndkbundle = await openFolder(FileOpenType.NDK);
             await panel.webview.postMessage({
                 type: "ndkbundle",
@@ -315,9 +329,12 @@ async function create(extensionPath: string): Promise<void> {
             });
         } else if (message.type === "submit") {
             panel.dispose();
-
             // Create project
             const projectPath = message.payload.projectFolder;
+            fs.writeFile(
+                path.join(projectPath, "ndkpath.txt"),
+                message.payload.ndkbundle.replace("\\", "/")
+            );
             await setupTemplate(projectPath);
             const projectInfo: ModInfo = {
                 id: message.payload.id,
@@ -327,12 +344,12 @@ async function create(extensionPath: string): Promise<void> {
                 description: message.payload.description,
                 out: message.payload.id.toLowerCase(),
                 gameVersion: message.payload.gameVersion,
-                ndkpath: message.payload.ndkbundle,
-                libil2cpp: message.payload.libil2cpp,
+                ndkpath: message.payload.ndkbundle.replace("\\", "/"),
+                libil2cpp: message.payload.libil2cpp.replace("\\", "/"),
             };
             const template = await fillTemplate(projectPath, projectInfo);
             await initRepo(projectPath, template);
-
+            await addIl2cpp(projectPath);
             // Set workspace to new project
             vscode.workspace.updateWorkspaceFolders(0, 0, {
                 uri: vscode.Uri.file(projectPath),
