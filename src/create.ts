@@ -11,6 +11,8 @@ interface ModInfo {
     author: string;
     category: string;
     description: string[];
+    gameVersion: string;
+    libil2cpp: string;
     out: string;
 }
 
@@ -37,36 +39,53 @@ function getNonce(): string {
     return text;
 }
 
-async function openFolder(): Promise<string | undefined> {
+async function openFolder(empty: boolean): Promise<string | undefined> {
     let validPath = false;
-    let projectPath: string | undefined = undefined;
+    let selectedPath: string | undefined = undefined;
     let retry = true;
     do {
-        // Open folder dialog to select project location
-        const installPath:
-            | vscode.Uri[]
-            | undefined = await vscode.window.showOpenDialog({
-            canSelectFiles: false,
-            canSelectFolders: true,
-            canSelectMany: false,
-            openLabel: "Select empty project folder",
-        });
-
-        // Check if path is valid
-        validPath =
-            installPath !== undefined &&
-            (await directoryIsEmpty(installPath[0].fsPath));
-        if (validPath && installPath !== undefined) {
-            // Set project path
-            projectPath = installPath[0].fsPath;
-        } else if (installPath === undefined) {
-            retry = false;
+        if (empty) {
+            // Open folder dialog to select project location
+            const installPath:
+                | vscode.Uri[]
+                | undefined = await vscode.window.showOpenDialog({
+                canSelectFiles: false,
+                canSelectFolders: true,
+                canSelectMany: false,
+                openLabel: "Select empty project folder",
+            });
+            // Check if path is valid
+            validPath =
+                installPath !== undefined &&
+                (await directoryIsEmpty(installPath[0].fsPath));
+            if (validPath && installPath !== undefined) {
+                // Set project path
+                selectedPath = installPath[0].fsPath;
+            } else if (installPath === undefined) {
+                retry = false;
+            } else {
+                vscode.window.showErrorMessage("Folder must be empty.");
+            }
         } else {
-            vscode.window.showErrorMessage("Folder must be empty.");
+            const path:
+                | vscode.Uri[]
+                | undefined = await vscode.window.showOpenDialog({
+                canSelectFiles: false,
+                canSelectFolders: true,
+                canSelectMany: false,
+                openLabel: "Select libil2cpp directory",
+            });
+            validPath = path !== undefined;
+            if (path !== undefined) {
+                // Set libil2cpp path
+                selectedPath = path[0].fsPath;
+            } else {
+                retry = false;
+            }
         }
     } while (!validPath && retry);
 
-    return projectPath;
+    return selectedPath;
 }
 
 async function setupTemplate(projectPath: string): Promise<void> {
@@ -239,20 +258,6 @@ async function initRepo(
     );
 }
 
-async function addIl2cpp(projectPath: string): Promise<void> {
-    // Download libil2cpp
-    const libil2cppPath: string = path.join(
-        projectPath,
-        "extern",
-        "beatsaber-hook",
-        "shared"
-    );
-    await downlaodAndUnzip(
-        "https://files.raphaeltheriault.com/libil2cpp.zip",
-        libil2cppPath
-    );
-}
-
 async function create(extensionPath: string): Promise<void> {
     // Create webview panel
     const panel = vscode.window.createWebviewPanel(
@@ -285,10 +290,17 @@ async function create(extensionPath: string): Promise<void> {
     panel.webview.onDidReceiveMessage(async (message) => {
         if (message.type === "browse") {
             // Select project folder
-            const projectPath = await openFolder();
+            const projectPath = await openFolder(true);
             await panel.webview.postMessage({
                 type: "browse",
                 payload: projectPath,
+            });
+        } else if (message.type === "libil2cpp") {
+            // Select project folder
+            const libil2cpp = await openFolder(false);
+            await panel.webview.postMessage({
+                type: "libil2cpp",
+                payload: libil2cpp,
             });
         } else if (message.type === "submit") {
             panel.dispose();
@@ -303,10 +315,11 @@ async function create(extensionPath: string): Promise<void> {
                 category: message.payload.category,
                 description: message.payload.description,
                 out: message.payload.id.toLowerCase(),
+                gameVersion: message.payload.gameVersion,
+                libil2cpp: message.payload.libil2cpp,
             };
             const template = await fillTemplate(projectPath, projectInfo);
             await initRepo(projectPath, template);
-            await addIl2cpp(projectPath);
 
             // Set workspace to new project
             vscode.workspace.updateWorkspaceFolders(0, 0, {

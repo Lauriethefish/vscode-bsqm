@@ -72,7 +72,8 @@ input:not([type=submit]):invalid, textarea:invalid {
         [row2-start] "name description" auto [row2-end]
         [row3-start] "author description" auto [row3-end]
         [row4-start] "category description" auto [row4-end]
-        [row5-start] "submit path" auto [row5-end]
+        [row5-start] "gameVersion path" auto [row5-end]
+        [row6-start] "submit libil2cpp" auto [row6-end]
         / 1fr 2fr;
 }
 
@@ -151,6 +152,24 @@ input:not([type=submit]):invalid, textarea:invalid {
 }
 
 #browse input {
+    width: 100%;
+    flex: 1 1 auto;
+}
+
+#libil2cpp {
+    grid-area: libil2cpp;
+}
+
+#libil2cpp div {
+    display: flex;
+    flex-flow: row;
+}
+
+#libil2cpp button {
+    flex: 0 1 auto;
+}
+
+#libil2cpp input {
     width: 100%;
     flex: 1 1 auto;
 }
