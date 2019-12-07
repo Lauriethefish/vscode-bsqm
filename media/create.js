@@ -7,6 +7,8 @@ const browseButton = form.querySelector("#browse button");
 const projectFolderInput = form.querySelector("#browse input");
 const libil2cppButton = form.querySelector("#libil2cpp button");
 const libil2cppInput = form.querySelector("#libil2cpp input");
+const ndkbundleButton = form.querySelector("#ndkbundle button");
+const ndkbundleInput = form.querySelector("#ndkbundle input");
 
 form.onsubmit = (event) => {
     event.preventDefault();
@@ -23,6 +25,7 @@ form.onsubmit = (event) => {
     const gameVersion = form.querySelector("#gameVersion option[selected]")
         .value;
     const libil2cpp = libil2cppInput.value;
+    const ndkbundle = ndkbundleInput.value;
     const projectFolder = projectFolderInput.value;
 
     vscode.postMessage({
@@ -34,6 +37,7 @@ form.onsubmit = (event) => {
             description,
             category,
             gameVersion,
+            ndkbundle,
             libil2cpp,
             projectFolder,
         },
@@ -64,6 +68,17 @@ libil2cppButton.onclick = (event) => {
     return false;
 };
 
+ndkbundleButton.onclick = (event) => {
+    event.preventDefault();
+
+    vscode.postMessage({
+        type: "ndkbundle",
+        payload: {},
+    });
+
+    return false;
+};
+
 projectFolderInput.onfocus = (event) => {
     event.preventDefault();
     projectFolderInput.blur();
@@ -88,6 +103,18 @@ libil2cppInput.onkeydown = (event) => {
     return false;
 };
 
+ndkbundleInput.onfocus = (event) => {
+    event.preventDefault();
+    ndkbundleInput.blur();
+    return false;
+};
+
+ndkbundleInput.onkeydown = (event) => {
+    event.preventDefault();
+    ndkbundleInput.blur();
+    return false;
+};
+
 window.addEventListener("message", (event) => {
     const message = event.data;
     if (message.type === "browse") {
@@ -101,6 +128,12 @@ window.addEventListener("message", (event) => {
             libil2cppInput.value == message.payload;
         } else {
             libil2cppInput.value = "";
+        }
+    } else if (message.type === "ndkbundle") {
+        if (message.payload !== undefined) {
+            ndkbundleInput.value == message.payload;
+        } else {
+            ndkbundleInput.value = "";
         }
     }
 });

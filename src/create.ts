@@ -13,6 +13,7 @@ interface ModInfo {
     description: string[];
     gameVersion: string;
     libil2cpp: string;
+    ndkpath: string;
     out: string;
 }
 
@@ -29,6 +30,12 @@ interface ModTemplate {
     submodules: GitSubmodule[];
 }
 
+enum FileOpenType {
+    Project,
+    libil2cpp,
+    NDK,
+}
+
 function getNonce(): string {
     let text = "";
     const possible =
@@ -39,12 +46,12 @@ function getNonce(): string {
     return text;
 }
 
-async function openFolder(empty: boolean): Promise<string | undefined> {
+async function openFolder(type: FileOpenType): Promise<string | undefined> {
     let validPath = false;
     let selectedPath: string | undefined = undefined;
     let retry = true;
     do {
-        if (empty) {
+        if (type == FileOpenType.Project) {
             // Open folder dialog to select project location
             const installPath:
                 | vscode.Uri[]
@@ -59,7 +66,6 @@ async function openFolder(empty: boolean): Promise<string | undefined> {
                 installPath !== undefined &&
                 (await directoryIsEmpty(installPath[0].fsPath));
             if (validPath && installPath !== undefined) {
-                // Set project path
                 selectedPath = installPath[0].fsPath;
             } else if (installPath === undefined) {
                 retry = false;
@@ -73,11 +79,10 @@ async function openFolder(empty: boolean): Promise<string | undefined> {
                 canSelectFiles: false,
                 canSelectFolders: true,
                 canSelectMany: false,
-                openLabel: "Select libil2cpp directory",
+                openLabel: "Select " + FileOpenType[type] + " directory",
             });
             validPath = path !== undefined;
             if (path !== undefined) {
-                // Set libil2cpp path
                 selectedPath = path[0].fsPath;
             } else {
                 retry = false;
@@ -288,19 +293,27 @@ async function create(extensionPath: string): Promise<void> {
     /* eslint-enable require-atomic-updates */
 
     panel.webview.onDidReceiveMessage(async (message) => {
+        console.log(message);
         if (message.type === "browse") {
             // Select project folder
-            const projectPath = await openFolder(true);
+            const projectPath = await openFolder(FileOpenType.Project);
             await panel.webview.postMessage({
                 type: "browse",
                 payload: projectPath,
             });
         } else if (message.type === "libil2cpp") {
-            // Select project folder
-            const libil2cpp = await openFolder(false);
+            // Select libil2cpp folder
+            const libil2cpp = await openFolder(FileOpenType.libil2cpp);
             await panel.webview.postMessage({
                 type: "libil2cpp",
                 payload: libil2cpp,
+            });
+        } else if (message.type === "ndkbundle") {
+            // Select ndkbundle folder
+            const ndkbundle = await openFolder(FileOpenType.NDK);
+            await panel.webview.postMessage({
+                type: "ndkbundle",
+                payload: ndkbundle,
             });
         } else if (message.type === "submit") {
             panel.dispose();
@@ -316,6 +329,7 @@ async function create(extensionPath: string): Promise<void> {
                 description: message.payload.description,
                 out: message.payload.id.toLowerCase(),
                 gameVersion: message.payload.gameVersion,
+                ndkpath: message.payload.ndkpath,
                 libil2cpp: message.payload.libil2cpp,
             };
             const template = await fillTemplate(projectPath, projectInfo);
