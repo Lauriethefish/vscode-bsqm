@@ -89,7 +89,6 @@ async function openFolder(type: FileOpenType): Promise<string | undefined> {
             }
         }
     } while (!validPath && retry);
-
     return selectedPath;
 }
 
@@ -293,7 +292,6 @@ async function create(extensionPath: string): Promise<void> {
     /* eslint-enable require-atomic-updates */
 
     panel.webview.onDidReceiveMessage(async (message) => {
-        console.log(message);
         if (message.type === "browse") {
             // Select project folder
             const projectPath = await openFolder(FileOpenType.Project);
@@ -329,7 +327,7 @@ async function create(extensionPath: string): Promise<void> {
                 description: message.payload.description,
                 out: message.payload.id.toLowerCase(),
                 gameVersion: message.payload.gameVersion,
-                ndkpath: message.payload.ndkpath,
+                ndkpath: message.payload.ndkbundle,
                 libil2cpp: message.payload.libil2cpp,
             };
             const template = await fillTemplate(projectPath, projectInfo);

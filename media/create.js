@@ -125,13 +125,11 @@ window.addEventListener("message", (event) => {
         }
     } else if (message.type === "libil2cpp") {
         if (message.payload !== undefined) {
-            libil2cppInput.value == message.payload;
-        } else {
-            libil2cppInput.value = "";
+            libil2cppInput.value = message.payload;
         }
     } else if (message.type === "ndkbundle") {
         if (message.payload !== undefined) {
-            ndkbundleInput.value == message.payload;
+            ndkbundleInput.value = message.payload;
         } else {
             ndkbundleInput.value = "";
         }
