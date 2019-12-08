@@ -270,8 +270,10 @@ async function addIl2cpp(projectPath: string): Promise<void> {
         "beatsaber-hook",
         "shared"
     );
+    // TODO: Add mini-libil2cpp, not full libil2cpp
     await downlaodAndUnzip(
-        "https://files.raphaeltheriault.com/libil2cpp.zip",
+        "https://srv-file5.gofile.io/download/SOlwlz/libil2cpp.zip",
+        // "https://files.raphaeltheriault.com/libil2cpp.zip",
         libil2cppPath
     );
 }
@@ -333,7 +335,7 @@ async function create(extensionPath: string): Promise<void> {
             const projectPath = message.payload.projectFolder;
             fs.writeFile(
                 path.join(projectPath, "ndkpath.txt"),
-                message.payload.ndkbundle.replace("\\", "/")
+                message.payload.ndkbundle.replace(/\\/g, "/")
             );
             await setupTemplate(projectPath);
             const projectInfo: ModInfo = {
@@ -344,8 +346,8 @@ async function create(extensionPath: string): Promise<void> {
                 description: message.payload.description,
                 out: message.payload.id.toLowerCase(),
                 gameVersion: message.payload.gameVersion,
-                ndkpath: message.payload.ndkbundle.replace("\\", "/"),
-                libil2cpp: message.payload.libil2cpp.replace("\\", "/"),
+                ndkpath: message.payload.ndkbundle.replace(/\\/g, "/"),
+                libil2cpp: message.payload.libil2cpp.replace(/\\/g, "/"),
             };
             const template = await fillTemplate(projectPath, projectInfo);
             await initRepo(projectPath, template);
