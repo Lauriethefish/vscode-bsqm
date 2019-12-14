@@ -262,22 +262,6 @@ async function initRepo(
     );
 }
 
-async function addIl2cpp(projectPath: string): Promise<void> {
-    // Download libil2cpp
-    const libil2cppPath: string = path.join(
-        projectPath,
-        "extern",
-        "beatsaber-hook",
-        "shared"
-    );
-    // TODO: Add mini-libil2cpp, not full libil2cpp
-    await downlaodAndUnzip(
-        "https://srv-file5.gofile.io/download/SOlwlz/libil2cpp.zip",
-        // "https://files.raphaeltheriault.com/libil2cpp.zip",
-        libil2cppPath
-    );
-}
-
 async function create(extensionPath: string): Promise<void> {
     // Create webview panel
     const panel = vscode.window.createWebviewPanel(
@@ -351,7 +335,6 @@ async function create(extensionPath: string): Promise<void> {
             };
             const template = await fillTemplate(projectPath, projectInfo);
             await initRepo(projectPath, template);
-            await addIl2cpp(projectPath);
             // Set workspace to new project
             vscode.workspace.updateWorkspaceFolders(0, 0, {
                 uri: vscode.Uri.file(projectPath),
