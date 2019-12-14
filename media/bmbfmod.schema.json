@@ -221,7 +221,7 @@
                                                     "enum": [
                                                         "{{Saber}}",
                                                         "{{Note}}",
-                                                        "{{MenuTrail}}",
+                                                        "{{MenuTitle}}",
                                                         "{{Trail}}",
                                                         "{{Platform}}"
                                                     ]
@@ -303,7 +303,7 @@
                                                                     "enum": [
                                                                         "Saber",
                                                                         "Note",
-                                                                        "MenuTrail",
+                                                                        "MenuTitle",
                                                                         "Trail",
                                                                         "Platform"
                                                                     ]
