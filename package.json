@@ -2,7 +2,7 @@
     "name": "bsqm",
     "displayName": "Beat Saber Quest Modding",
     "description": "Utilities to make modding the Oculus Quest version of Beat Saber easier",
-    "version": "0.2.0",
+    "version": "0.3.0",
     "publisher": "raftario",
     "engines": {
         "vscode": "^1.38.0"
