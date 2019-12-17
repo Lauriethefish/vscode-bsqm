@@ -27,13 +27,3 @@ This extension contributes the following settings:
 ## Known Issues
 
 Still in early development, some issues will probably arise, report them [here](https://github.com/raftario/vscode-bsqm/issues).
-
-## Release Notes
-
-### 0.2.0
-
--   Bug fixes, updates and improvements (@Sc2ad)
-
-### 0.1.0
-
--   Initial release
