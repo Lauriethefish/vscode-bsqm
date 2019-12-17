@@ -87,7 +87,7 @@
         "jsonValidation": [
             {
                 "fileMatch": "bmbfmod.json",
-                "url": "./media/bmbfmod.schema.json"
+                "url": "./intellisense/bmbfmod.schema.json"
             },
             {
                 "fileMatch": "info.dat",
@@ -96,6 +96,16 @@
             {
                 "fileMatch": "{Easy,Normal,Hard,Expert,ExpertPlus}.dat",
                 "url": "https://raw.githubusercontent.com/lolPants/beatmap-schemas/master/schemas/difficulty.schema.json"
+            }
+        ],
+        "snippets": [
+            {
+                "language": "c",
+                "path": "./intellisense/snippets.json"
+            },
+            {
+                "language": "cpp",
+                "path": "./intellisense/snippets.json"
             }
         ]
     },
