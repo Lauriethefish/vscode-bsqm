@@ -5,6 +5,10 @@ const vscode = acquireVsCodeApi();
 const form = document.querySelector("form");
 const browseButton = form.querySelector("#browse button");
 const projectFolderInput = form.querySelector("#browse input");
+const libil2cppButton = form.querySelector("#libil2cpp button");
+const libil2cppInput = form.querySelector("#libil2cpp input");
+const ndkbundleButton = form.querySelector("#ndkbundle button");
+const ndkbundleInput = form.querySelector("#ndkbundle input");
 
 form.onsubmit = (event) => {
     event.preventDefault();
@@ -18,6 +22,10 @@ form.onsubmit = (event) => {
         .split("\n")
         .filter((line) => line !== "");
     const category = form.querySelector("#category option[selected]").value;
+    const gameVersion = form.querySelector("#gameVersion option[selected]")
+        .value;
+    const libil2cpp = libil2cppInput.value;
+    const ndkbundle = ndkbundleInput.value;
     const projectFolder = projectFolderInput.value;
 
     vscode.postMessage({
@@ -28,6 +36,9 @@ form.onsubmit = (event) => {
             author,
             description,
             category,
+            gameVersion,
+            ndkbundle,
+            libil2cpp,
             projectFolder,
         },
     });
@@ -46,6 +57,28 @@ browseButton.onclick = (event) => {
     return false;
 };
 
+libil2cppButton.onclick = (event) => {
+    event.preventDefault();
+
+    vscode.postMessage({
+        type: "libil2cpp",
+        payload: {},
+    });
+
+    return false;
+};
+
+ndkbundleButton.onclick = (event) => {
+    event.preventDefault();
+
+    vscode.postMessage({
+        type: "ndkbundle",
+        payload: {},
+    });
+
+    return false;
+};
+
 projectFolderInput.onfocus = (event) => {
     event.preventDefault();
     projectFolderInput.blur();
@@ -58,6 +91,30 @@ projectFolderInput.onkeydown = (event) => {
     return false;
 };
 
+libil2cppInput.onfocus = (event) => {
+    event.preventDefault();
+    libil2cppInput.blur();
+    return false;
+};
+
+libil2cppInput.onkeydown = (event) => {
+    event.preventDefault();
+    libil2cppInput.blur();
+    return false;
+};
+
+ndkbundleInput.onfocus = (event) => {
+    event.preventDefault();
+    ndkbundleInput.blur();
+    return false;
+};
+
+ndkbundleInput.onkeydown = (event) => {
+    event.preventDefault();
+    ndkbundleInput.blur();
+    return false;
+};
+
 window.addEventListener("message", (event) => {
     const message = event.data;
     if (message.type === "browse") {
@@ -65,6 +122,16 @@ window.addEventListener("message", (event) => {
             projectFolderInput.value = message.payload;
         } else {
             projectFolderInput.value = "";
+        }
+    } else if (message.type === "libil2cpp") {
+        if (message.payload !== undefined) {
+            libil2cppInput.value = message.payload;
+        }
+    } else if (message.type === "ndkbundle") {
+        if (message.payload !== undefined) {
+            ndkbundleInput.value = message.payload;
+        } else {
+            ndkbundleInput.value = "";
         }
     }
 });
