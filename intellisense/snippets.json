@@ -2,7 +2,7 @@
     "Offsetless Hook Creation": {
         "prefix": "MAKE_HOOK_OFFSETLESS",
         "body": [
-            "MAKE_HOOK_OFFSETLESS(${1:name}, ${2:void}, Il2CppObject* self$3) {",
+            "MAKE_HOOK_OFFSETLESS(${1:name}, ${2:void}${3:, Il2CppObject* self}) {",
             "\t$0",
             "}"
         ]
@@ -14,7 +14,7 @@
     "Hook Creation": {
         "prefix": "MAKE_HOOK",
         "body": [
-            "MAKE_HOOK(${1:name}, ${2:0x000000}, ${3:void}, Il2CppObject* self$4) {",
+            "MAKE_HOOK(${1:name}, ${2:0x000000}, ${3:void}${4:, Il2CppObject* self}) {",
             "\t$0",
             "}"
         ]
@@ -22,5 +22,21 @@
     "Hook Registration": {
         "prefix": "INSTALL_HOOK",
         "body": "INSTALL_HOOK(${1:name});"
+    },
+    "Instance Field Getter": {
+        "prefix": "il2cpp_utils::GetFieldValue",
+        "body": [
+            "if (!il2cpp_utils::GetFieldValue(&${1:local}, ${2:self}, \"${3:target}\")) {",
+            "\t${0:log(CRITICAL, \"Failed to get field\");}",
+            "}"
+        ]
+    },
+    "Instance Field Setter": {
+        "prefix": "il2cpp_utils::SetFieldValue",
+        "body": [
+            "if (!il2cpp_utils::GetFieldValue(${1:self}, \"${2:target}\", &${3:local})) {",
+            "\t${0:log(CRITICAL, \"Failed to set field\");}",
+            "}"
+        ]
     }
 }
