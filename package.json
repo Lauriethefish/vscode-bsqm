@@ -20,7 +20,9 @@
     ],
     "activationEvents": [
         "workspaceContains:**/beatonmod.json",
+        "workspaceContains:**/bmbfmod.json",
         "workspaceContains:**/beatsaber-hook",
+        "workspaceContains:**/info.dat",
         "onCommand:bsqm.activate",
         "onCommand:bsqm.configure",
         "onCommand:bsqm.create"
@@ -86,6 +88,14 @@
             {
                 "fileMatch": "bmbfmod.json",
                 "url": "./media/bmbfmod.schema.json"
+            },
+            {
+                "fileMatch": "info.dat",
+                "url": "https://raw.githubusercontent.com/lolPants/beatmap-schemas/master/schemas/info.schema.json"
+            },
+            {
+                "fileMatch": "{Easy,Normal,Hard,Expert,ExpertPlus}.dat",
+                "url": "https://raw.githubusercontent.com/lolPants/beatmap-schemas/master/schemas/difficulty.schema.json"
             }
         ]
     },
