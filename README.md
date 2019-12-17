@@ -8,7 +8,7 @@ To get started, run the `bsqm.configure` command and follow the instructions.
 
 -   [x] Development tools detection and installation
 -   [x] Project creation
--   [ ] Custom build and push tasks
+-   [x] Custom build and push tasks
 -   [x] Manifest instellisense
 -   [ ] Custom C/C++ intellisense
 
@@ -30,6 +30,10 @@ Still in early development, some issues will probably arise, report them [here](
 
 ## Release Notes
 
-### [Unreleased]
+### 0.2.0
+
+-   Bug fixes, updates and improvements (@Sc2ad)
+
+### 0.1.0
 
 -   Initial release
