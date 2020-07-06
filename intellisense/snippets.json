@@ -22,21 +22,5 @@
     "Hook Registration": {
         "prefix": "INSTALL_HOOK",
         "body": "INSTALL_HOOK(${1:name});"
-    },
-    "Instance Field Getter": {
-        "prefix": "il2cpp_utils::GetFieldValue",
-        "body": [
-            "if (!il2cpp_utils::GetFieldValue(&${1:local}, ${2:self}, \"${3:target}\")) {",
-            "\t${0:log(CRITICAL, \"Failed to get field\");}",
-            "}"
-        ]
-    },
-    "Instance Field Setter": {
-        "prefix": "il2cpp_utils::SetFieldValue",
-        "body": [
-            "if (!il2cpp_utils::GetFieldValue(${1:self}, \"${2:target}\", &${3:local})) {",
-            "\t${0:log(CRITICAL, \"Failed to set field\");}",
-            "}"
-        ]
     }
 }
