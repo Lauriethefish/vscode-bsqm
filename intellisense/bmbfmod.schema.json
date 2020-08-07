@@ -97,7 +97,7 @@
                         "title": "Type",
                         "description": "Type of the mod",
                         "type": "string",
-                        "enum": ["AssetsMod", "HookMod", "FileCopyMod"]
+                        "enum": ["AssetsMod", "HookMod", "FileCopyMod", "HookModLibrary]
                     },
                     "dependencies": {
                         "title": "Dependencies",
@@ -504,7 +504,7 @@
                     {
                         "properties": {
                             "type": {
-                                "enum": ["HookMod"]
+                                "enum": ["HookMod", "HookModLibrary]
                             },
                             "installAction": {
                                 "title": "Install Actions",
