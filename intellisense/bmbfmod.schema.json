@@ -504,7 +504,7 @@
                     {
                         "properties": {
                             "type": {
-                                "enum": ["HookMod", "HookModLibrary]
+                                "enum": ["HookMod", "HookModLibrary"]
                             },
                             "installAction": {
                                 "title": "Install Actions",
