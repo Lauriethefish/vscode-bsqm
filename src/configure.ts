@@ -211,11 +211,12 @@ async function checkNdk(): Promise<string | null> {
         macos: "ndk-build",
         linux: "ndk-build",
     };
-    const ndkVer = "r20";
+    const ndkVer = "r23";
     const ndkUrl: CrossString = {
-        windows: `https://dl.google.com/android/repository/android-ndk-${ndkVer}-windows-x86_64.zip`,
-        macos: `https://dl.google.com/android/repository/android-ndk-${ndkVer}-darwin-x86_64.zip`,
-        linux: `https://dl.google.com/android/repository/android-ndk-${ndkVer}-linux-x86_64.zip`,
+        
+        windows: `https://dl.google.com/android/repository/android-ndk-${ndkVer}-windows.zip`,
+        macos: `https://dl.google.com/android/repository/android-ndk-${ndkVer}-darwin.zip`,
+        linux: `https://dl.google.com/android/repository/android-ndk-${ndkVer}-linux.zip`,
     };
 
     const ndkPath: string | null = await checkOrDownloadTool(
@@ -258,7 +259,14 @@ async function configure(): Promise<void> {
         }
         ndkDir += "**";
 
-        const includePath: string[] = cppConfig.get("default.includePath", []);
+        // NDK path must be with forward slashes
+        ndkDir = ndkDir.replace("\\", "/");
+
+        let includePath: string[] | undefined = cppConfig.get("default.includePath");
+        if(includePath === null || includePath === undefined) {
+            includePath = [];
+        }
+
         if (!includePath.includes(ndkDir)) {
             includePath.push(ndkDir);
         }
