@@ -277,6 +277,8 @@ async function configure(): Promise<void> {
             vscode.ConfigurationTarget.Global
         );
     }
+
+    vscode.window.showInformationMessage("BSQM setup complete");
 }
 
 export default async function c(): Promise<void> {
