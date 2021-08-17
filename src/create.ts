@@ -83,6 +83,18 @@ async function setupTemplate(projectPath: string): Promise<void> {
     );
 }
 
+async function fillFile(filePath: string, modInfo: ModInfo): Promise<void> {
+    // TODO: Make this more efficient, replacing this many times has got to be very slow, although it isn't a problem with so few files in the template.
+    let content: string = await (await fs.readFile(filePath)).toString();
+    content = content.replace(/#{id}/g, modInfo.id);
+    content = content.replace(/#{description}/g, modInfo.description);
+    content = content.replace(/#{author}/g, modInfo.author);
+    content = content.replace(/#{name}/g, modInfo.name);
+    content = content.replace(/#{ndkpath}/g, modInfo.ndkPath);
+
+    await fs.writeFile(filePath, content);
+}
+
 async function fillTemplate(projectPath: string, modInfo: ModInfo) : Promise<void> {
     const files = [
         ".vscode/c_cpp_properties.json",
@@ -99,19 +111,6 @@ async function fillTemplate(projectPath: string, modInfo: ModInfo) : Promise<voi
         await fillFile(path.join(projectPath, file), modInfo);
     }
 }
-
-async function fillFile(filePath: string, modInfo: ModInfo): Promise<void> {
-    // TODO: Make this more efficient, replacing this many times has got to be very slow, although it isn't a problem with so few files in the template.
-    let content: string = await (await fs.readFile(filePath)).toString();
-    content = content.replace(/#{id}/g, modInfo.id);
-    content = content.replace(/#{description}/g, modInfo.description);
-    content = content.replace(/#{author}/g, modInfo.author);
-    content = content.replace(/#{name}/g, modInfo.name);
-    content = content.replace(/#{ndkpath}/g, modInfo.ndkPath);
-
-    await fs.writeFile(filePath, content);
-}
-
 
 async function initRepo(
     projectPath: string,
@@ -190,28 +189,22 @@ async function create(extensionPath: string): Promise<void> {
             const buildScriptPath = config.get("bsqm.tools.ndk") as string;
             const ndkPath = path.dirname(buildScriptPath).replace(/\\/g, "/");
 
-            try {
-                const projectPath = "C:\\Users\\Lauri\\Beat_Saber_Mod_Dev\\Mods\\new-test-mod";
+            await setupTemplate(projectPath);
+            const projectInfo: ModInfo = {
+                id: message.payload.id,
+                name: message.payload.name,
+                author: message.payload.author,
+                description: message.payload.description,
+                ndkPath: ndkPath
+            };
 
-                await setupTemplate(projectPath);
-                const projectInfo: ModInfo = {
-                    id: message.payload.id,
-                    name: message.payload.name,
-                    author: message.payload.author,
-                    description: message.payload.description,
-                    ndkPath: ndkPath
-                };
-
-                await fillTemplate(projectPath, projectInfo);
-                
-                await initRepo(projectPath);
-                // Set workspace to new project
-                vscode.workspace.updateWorkspaceFolders(0, 0, {
-                    uri: vscode.Uri.file(projectPath),
-                });
-            } catch (error) {
-               throw error; 
-            }
+            await fillTemplate(projectPath, projectInfo);
+            
+            await initRepo(projectPath);
+            // Set workspace to new project
+            vscode.workspace.updateWorkspaceFolders(0, 0, {
+                uri: vscode.Uri.file(projectPath),
+            });
         }
     });
 }
