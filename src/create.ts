@@ -1,6 +1,5 @@
 import * as cp from "child_process";
 import * as fs from "fs-extra";
-import * as nunjucks from "nunjucks";
 import * as path from "path";
 import * as vscode from "vscode";
 import { directoryIsEmpty, downloadAndUnzip } from "./utils";
@@ -95,7 +94,10 @@ async function fillFile(filePath: string, modInfo: ModInfo): Promise<void> {
     await fs.writeFile(filePath, content);
 }
 
-async function fillTemplate(projectPath: string, modInfo: ModInfo) : Promise<void> {
+async function fillTemplate(
+    projectPath: string,
+    modInfo: ModInfo
+): Promise<void> {
     const files = [
         ".vscode/c_cpp_properties.json",
         "Android.mk",
@@ -104,17 +106,15 @@ async function fillTemplate(projectPath: string, modInfo: ModInfo) : Promise<voi
         "mod.json",
         "qpm.json",
         "README.md",
-        "ndkpath.txt"
+        "ndkpath.txt",
     ];
 
-    for(const file of files)    {
+    for (const file of files) {
         await fillFile(path.join(projectPath, file), modInfo);
     }
 }
 
-async function initRepo(
-    projectPath: string,
-): Promise<void> {
+async function initRepo(projectPath: string): Promise<void> {
     const git: string = vscode.workspace
         .getConfiguration("bsqm.tools")
         .get("git", "git");
@@ -195,11 +195,11 @@ async function create(extensionPath: string): Promise<void> {
                 name: message.payload.name,
                 author: message.payload.author,
                 description: message.payload.description,
-                ndkPath: ndkPath
+                ndkPath: ndkPath,
             };
 
             await fillTemplate(projectPath, projectInfo);
-            
+
             await initRepo(projectPath);
             // Set workspace to new project
             vscode.workspace.updateWorkspaceFolders(0, 0, {
