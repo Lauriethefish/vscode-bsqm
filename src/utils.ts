@@ -3,7 +3,7 @@ import * as unzipper from "unzipper";
 import * as vscode from "vscode";
 import fetch, { Response } from "node-fetch";
 
-export async function downlaodAndUnzip(
+export async function downloadAndUnzip(
     url: string,
     path: string
 ): Promise<void> {

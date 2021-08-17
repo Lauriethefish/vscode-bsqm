@@ -71,9 +71,7 @@ input:not([type=submit]):invalid, textarea:invalid {
         [row1-start] "id description" auto [row1-end]
         [row2-start] "name description" auto [row2-end]
         [row3-start] "author description" auto [row3-end]
-        [row4-start] "category path" auto [row4-end]
-        [row5-start] "gameVersion ndkbundle" auto [row5-end]
-        [row6-start] "submit libil2cpp" auto [row6-end]
+        [row4-start] "submit path" auto [row4-end]
         / 1fr 2fr;
 }
 
@@ -120,18 +118,13 @@ input:not([type=submit]):invalid, textarea:invalid {
     flex: 1 1 auto;
 }
 
-#category {
-    grid-area: category;
-    margin-right: 32%;
-}
-
 #category select {
     width: 100%;
 }
 
 #submit {
     grid-area: submit;
-    margin-right: 32%;
+    margin-right: 28%;
 }
 
 #submit input {
@@ -149,45 +142,11 @@ input:not([type=submit]):invalid, textarea:invalid {
 
 #browse button {
     flex: 0 1 auto;
+    width: 30%;
+    margin-right: 2%;
 }
 
 #browse input {
-    width: 100%;
-    flex: 1 1 auto;
-}
-
-#libil2cpp {
-    grid-area: libil2cpp;
-}
-
-#libil2cpp div {
-    display: flex;
-    flex-flow: row;
-}
-
-#libil2cpp button {
-    flex: 0 1 auto;
-}
-
-#libil2cpp input {
-    width: 100%;
-    flex: 1 1 auto;
-}
-
-#ndkbundle {
-    grid-area: ndkbundle;
-}
-
-#ndkbundle div {
-    display: flex;
-    flex-flow: row;
-}
-
-#ndkbundle button {
-    flex: 0 1 auto;
-}
-
-#ndkbundle input {
     width: 100%;
     flex: 1 1 auto;
 }

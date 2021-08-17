@@ -1,7 +1,7 @@
 import * as path from "path";
 import * as vscode from "vscode";
 import * as which from "which";
-import { downlaodAndUnzip } from "./utils";
+import { downloadAndUnzip } from "./utils";
 
 interface CrossString {
     windows: string;
@@ -153,7 +153,7 @@ async function checkOrDownloadTool(
 
             if (validPath) {
                 // Download and unzip tool
-                await downlaodAndUnzip(osToolUrl, toolPath!);
+                await downloadAndUnzip(osToolUrl, toolPath!);
 
                 // Set to tool path
                 toolPath = path.join(toolPath!, zipSubfolder, osToolName);

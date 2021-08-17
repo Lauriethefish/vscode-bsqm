@@ -3,31 +3,14 @@ import * as fs from "fs-extra";
 import * as nunjucks from "nunjucks";
 import * as path from "path";
 import * as vscode from "vscode";
-import { directoryIsEmpty, downlaodAndUnzip } from "./utils";
+import { directoryIsEmpty, downloadAndUnzip } from "./utils";
 
 interface ModInfo {
     id: string;
     name: string;
     author: string;
-    category: string;
-    description: string[];
-    gameVersion: string;
-    libil2cpp: string;
-    ndkpath: string;
-    out: string;
-}
-
-interface GitSubmodule {
-    path: string;
-    url: string;
-    branch?: string;
-    commit?: string;
-}
-
-interface ModTemplate {
-    toFill: string[];
-    toDelete: string[];
-    submodules: GitSubmodule[];
+    description: string;
+    ndkPath: string;
 }
 
 enum FileOpenType {
@@ -93,73 +76,45 @@ async function openFolder(type: FileOpenType): Promise<string | undefined> {
 }
 
 async function setupTemplate(projectPath: string): Promise<void> {
-    // Get parent path and download path
-    const parentPath: string = path.dirname(projectPath);
-    const downloadPath: string = path.join(
-        parentPath,
-        "bmbf-mod-template-master"
-    );
-
     // Download and unzip template
-    await downlaodAndUnzip(
-        "https://github.com/raftario/bmbf-mod-template/archive/master.zip",
-        parentPath
+    await downloadAndUnzip(
+        "https://github.com/Lauriethefish/quest-mod-template/releases/latest/download/quest-mod-template.zip",
+        projectPath
     );
-
-    // Move downloaded template to project dir
-    await fs.copy(downloadPath, projectPath);
-    await fs.remove(downloadPath);
 }
 
-async function fillTemplate(
-    projectPath: string,
-    projectInfo: ModInfo
-): Promise<ModTemplate> {
-    // Parse template file
-    const templatePath = path.join(projectPath, "template.json");
-    const template: ModTemplate = await fs.readJSON(templatePath);
-    await fs.remove(templatePath);
+async function fillTemplate(projectPath: string, modInfo: ModInfo) : Promise<void> {
+    const files = [
+        ".vscode/c_cpp_properties.json",
+        "Android.mk",
+        "buildQMOD.ps1",
+        "copy.ps1",
+        "mod.json",
+        "qpm.json",
+        "README.md",
+        "ndkpath.txt"
+    ];
 
-    // Remove unused template files
-    for (const file of template.toDelete) {
-        if (projectPath !== undefined) {
-            await fs.remove(path.join(projectPath, file));
-        }
+    for(const file of files)    {
+        await fillFile(path.join(projectPath, file), modInfo);
     }
-
-    // Fill in template
-    for (const file of template.toFill) {
-        if (projectPath !== undefined) {
-            const filePath: string = path.join(projectPath, file);
-            const contents: string = await fs.readFile(filePath, {
-                encoding: "utf8",
-            });
-            let newContents: string = nunjucks.renderString(contents, {
-                mod: projectInfo,
-            });
-
-            // Remove extra newlines and commas in JSON files
-            if (filePath.endsWith(".json")) {
-                newContents = newContents.replace(/,(\s*)([\]}])/g, "$1$2");
-                newContents = newContents.replace(/\n{2,}/g, "\n");
-            }
-            // Remove extra newlines in Markdown files
-            if (filePath.endsWith(".md")) {
-                newContents = newContents.replace(/\n{3,}/g, "\n\n");
-            }
-
-            await fs.writeFile(filePath, newContents, {
-                encoding: "utf8",
-            });
-        }
-    }
-
-    return template;
 }
+
+async function fillFile(filePath: string, modInfo: ModInfo): Promise<void> {
+    // TODO: Make this more efficient, replacing this many times has got to be very slow, although it isn't a problem with so few files in the template.
+    let content: string = await (await fs.readFile(filePath)).toString();
+    content = content.replace(/#{id}/g, modInfo.id);
+    content = content.replace(/#{description}/g, modInfo.description);
+    content = content.replace(/#{author}/g, modInfo.author);
+    content = content.replace(/#{name}/g, modInfo.name);
+    content = content.replace(/#{ndkpath}/g, modInfo.ndkPath);
+
+    await fs.writeFile(filePath, content);
+}
+
 
 async function initRepo(
     projectPath: string,
-    template: ModTemplate
 ): Promise<void> {
     const git: string = vscode.workspace
         .getConfiguration("bsqm.tools")
@@ -187,76 +142,6 @@ async function initRepo(
             initChannel.appendLine(initResult.stderr.toString());
             if (initResult.status !== 0) {
                 throw new Error("Git repository initialisation failed.");
-            }
-
-            // Init git submodules
-            progress.report({
-                message: "Initialising git submodules...",
-            });
-            // Create submodules path
-            const submodulesPath: string =
-                projectPath !== undefined
-                    ? path.join(projectPath, "extern")
-                    : "extern";
-            await fs.mkdirp(submodulesPath);
-            // Loop over submodules
-            for (const submodule of template.submodules) {
-                // Add submodule
-                let submoduleArgs: string[] = ["submodule", "add"];
-                if (submodule.branch !== undefined) {
-                    submoduleArgs = submoduleArgs.concat([
-                        "-b",
-                        submodule.branch,
-                    ]);
-                }
-                submoduleArgs = submoduleArgs.concat([
-                    submodule.url,
-                    `extern/${submodule.path}`,
-                ]);
-                const subResult = cp.spawnSync(git, submoduleArgs, {
-                    cwd: projectPath,
-                });
-                initChannel.appendLine(subResult.stdout.toString());
-                initChannel.appendLine(subResult.stderr.toString());
-                if (subResult.status !== 0) {
-                    throw new Error("Git submodule initialisation failed.");
-                }
-
-                // Checkout submodule
-                if (
-                    submodule.commit !== undefined &&
-                    projectPath !== undefined
-                ) {
-                    const subCheckResult = cp.spawnSync(
-                        git,
-                        ["checkout", submodule.commit],
-                        {
-                            cwd: path.join(submodulesPath, submodule.path),
-                        }
-                    );
-                    initChannel.appendLine(subCheckResult.stdout.toString());
-                    initChannel.appendLine(subCheckResult.stderr.toString());
-                    if (subCheckResult.status !== 0) {
-                        throw new Error("Git subbodule checkout failed.");
-                    }
-                }
-            }
-
-            // Update all submodules
-            progress.report({
-                message: "Updating git submodules...",
-            });
-            const subUpdateResult = cp.spawnSync(
-                git,
-                ["submodule", "update", "--init", "--recursive"],
-                {
-                    cwd: submodulesPath,
-                }
-            );
-            initChannel.appendLine(subUpdateResult.stdout.toString());
-            initChannel.appendLine(subUpdateResult.stderr.toString());
-            if (subUpdateResult.status !== 0) {
-                throw new Error("Git submodule update failed.");
             }
         }
     );
@@ -287,9 +172,7 @@ async function create(extensionPath: string): Promise<void> {
         .replace("{{ jsUri }}", jsUri.toString())
         .replace("{{ cssUri }}", cssUri.toString())
         .replace(/{{ nonce }}/g, nonce);
-    /* eslint-disable require-atomic-updates */
     panel.webview.html = htmlContents;
-    /* eslint-enable require-atomic-updates */
 
     panel.webview.onDidReceiveMessage(async (message) => {
         if (message.type === "browse") {
@@ -299,46 +182,36 @@ async function create(extensionPath: string): Promise<void> {
                 type: "browse",
                 payload: projectPath,
             });
-        } else if (message.type === "libil2cpp") {
-            // Select libil2cpp folder
-            const libil2cpp = await openFolder(FileOpenType.libil2cpp);
-            await panel.webview.postMessage({
-                type: "libil2cpp",
-                payload: libil2cpp,
-            });
-        } else if (message.type === "ndkbundle") {
-            // Select ndk-bundle folder
-            const ndkbundle = await openFolder(FileOpenType.NDK);
-            await panel.webview.postMessage({
-                type: "ndkbundle",
-                payload: ndkbundle,
-            });
         } else if (message.type === "submit") {
             panel.dispose();
             // Create project
             const projectPath = message.payload.projectFolder;
-            fs.writeFile(
-                path.join(projectPath, "ndkpath.txt"),
-                message.payload.ndkbundle.replace(/\\/g, "/")
-            );
-            await setupTemplate(projectPath);
-            const projectInfo: ModInfo = {
-                id: message.payload.id,
-                name: message.payload.name,
-                author: message.payload.author,
-                category: message.payload.category,
-                description: message.payload.description,
-                out: message.payload.id.toLowerCase(),
-                gameVersion: message.payload.gameVersion,
-                ndkpath: message.payload.ndkbundle.replace(/\\/g, "/"),
-                libil2cpp: message.payload.libil2cpp.replace(/\\/g, "/"),
-            };
-            const template = await fillTemplate(projectPath, projectInfo);
-            await initRepo(projectPath, template);
-            // Set workspace to new project
-            vscode.workspace.updateWorkspaceFolders(0, 0, {
-                uri: vscode.Uri.file(projectPath),
-            });
+            const config = vscode.workspace.getConfiguration();
+            const buildScriptPath = config.get("bsqm.tools.ndk") as string;
+            const ndkPath = path.dirname(buildScriptPath).replace(/\\/g, "/");
+
+            try {
+                const projectPath = "C:\\Users\\Lauri\\Beat_Saber_Mod_Dev\\Mods\\new-test-mod";
+
+                await setupTemplate(projectPath);
+                const projectInfo: ModInfo = {
+                    id: message.payload.id,
+                    name: message.payload.name,
+                    author: message.payload.author,
+                    description: message.payload.description,
+                    ndkPath: ndkPath
+                };
+
+                await fillTemplate(projectPath, projectInfo);
+                
+                await initRepo(projectPath);
+                // Set workspace to new project
+                vscode.workspace.updateWorkspaceFolders(0, 0, {
+                    uri: vscode.Uri.file(projectPath),
+                });
+            } catch (error) {
+               throw error; 
+            }
         }
     });
 }
